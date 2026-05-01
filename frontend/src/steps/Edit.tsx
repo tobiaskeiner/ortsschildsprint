@@ -326,7 +326,7 @@ const Edit: React.FC<EditProps> = (props: EditProps) => {
             </div>
           )}
 
-          <div className="absolute inset-x-3 bottom-3 z-10 sm:inset-x-4 sm:bottom-4 md:inset-x-auto md:bottom-6 md:right-6">
+          <div className="absolute inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-[60] sm:inset-x-4 sm:bottom-[calc(1rem+env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-6 md:right-6 md:z-10">
             <button
               onClick={handleProceed}
               className="group flex w-full items-center justify-center gap-3 rounded-full bg-zinc-950 px-5 py-3.5 font-headline text-xs font-black uppercase tracking-[0.18em] text-white shadow-lg transition-transform hover:cursor-pointer hover:scale-[1.02] active:scale-95 md:min-w-[18rem] md:px-10 md:py-5 md:text-sm"
