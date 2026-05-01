@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+  @font-face {
+    font-family: "Material Symbols Outlined";
+    font-style: normal;
+    font-weight: 100 700;
+    font-display: swap;
+    src: url("../public/fonts/material-symbols.woff2") format("woff2");
+  }
+
+  .material-symbols-outlined {
+    font-family: "Material Symbols Outlined";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  }
+
+
+@theme {
+  --font-headline: "Space Grotesk Variable", sans-serif;
+  --font-body: "Inter Variable", sans-serif;
+
+  --color-primary: #705d00;
+  --color-primary-container: #f0ca00;
+  --color-on-primary-container: #675500;
+  --color-surface: #f8f9fa;
+  --color-surface-container-low: #f3f4f5;
+  --color-surface-container: #edeeef;
+  --color-surface-container-high: #e7e8e9;
+  --color-surface-container-highest: #e1e3e4;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-surface: #191c1d;
+  --color-on-surface-variant: #4d4632;
+  --color-secondary: #5f5e5e;
+  --color-outline-variant: #d0c6ab;
+  --color-success: #4bb543;
+  --color-error-container: #ffdad6;
+  --color-error: #ba1a1a;
+  --color-outline: #7e7760;
+  --color-tertiary-container: #62dcff;
+  --color-tertiary: #00677d;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+:root {
+  font-family: var(--font-body);
+  color: var(--color-on-surface);
+  background: var(--color-surface);
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+}

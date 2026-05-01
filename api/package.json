@@ -1,0 +1,20 @@
+{
+  "name": "api",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "prettier": "pnpm exec prettier . --write"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.7.6",
+    "@supabase/supabase-js": "^2.105.1",
+    "hono": "^4.12.16",
+    "zod": "^4.4.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.3",
+    "wrangler": "^4.87.0"
+  }
+}
