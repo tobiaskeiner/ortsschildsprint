@@ -138,7 +138,7 @@ const App: React.FC = () => {
                 )}
                 {step === 3 && <Export />}
               </>
-            ) : currentRoute === "/imprint" ? (
+            ) : currentRoute === "/legal-notice" ? (
               <LegalPage titleId="legalnotice.title" />
             ) : (
               <PrivacyPolicy titleId="legal.privacyPolicy.title" />

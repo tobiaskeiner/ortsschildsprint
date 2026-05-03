@@ -93,7 +93,7 @@ const AppMenu: React.FC<AppMenuProps> = ({
     {
       icon: "description",
       labelId: "menu.link.legalnotice",
-      route: "/imprint",
+      route: "/legal-notice",
     },
     {
       icon: "shield_lock",

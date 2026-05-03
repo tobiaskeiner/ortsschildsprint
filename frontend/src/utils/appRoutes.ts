@@ -1,4 +1,4 @@
-export const appRoutes = ["/", "/imprint", "/privacy-policy"] as const;
+export const appRoutes = ["/", "/legal-notice", "/privacy-policy"] as const;
 
 export type AppRoute = (typeof appRoutes)[number];
 
