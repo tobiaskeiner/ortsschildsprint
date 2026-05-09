@@ -2,6 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "ortsschildsprint-api",
   "main": "src/index.ts",
+  "workers_dev": false,
   "compatibility_date": "2026-04-23",
   "observability": {
     "enabled": false,

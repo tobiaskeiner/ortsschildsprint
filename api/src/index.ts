@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { createClient } from "@supabase/supabase-js";
 import * as z from "zod";
 import { zValidator } from "@hono/zod-validator";
@@ -13,9 +12,6 @@ if (!supabaseKey || !supabaseUrl) throw new Error();
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const app = new Hono();
-
-// Enable CORS for all routes
-app.use("/*", cors());
 
 const schema = z.object({
   minLat: z.number().min(-90).max(90),
