@@ -125,7 +125,7 @@ const useParseFile = () => {
 
       // already fetch signs for performance
       const bound = bbox(geoJson);
-      const response = await fetch(`${import.meta.env.VITE_OS_API_URL}/signs`, {
+      const response = await fetch("/api/signs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

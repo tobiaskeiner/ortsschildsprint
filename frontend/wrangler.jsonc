@@ -1,7 +1,14 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "ortsschildsprint-frontend",
+  "main": "src/worker.ts",
   "compatibility_date": "2026-04-23",
+  "services": [
+    {
+      "binding": "ORTSSCHILDSPRINT_API",
+      "service": "ortsschildsprint-api"
+    }
+  ],
   "assets": {
     "not_found_handling": "single-page-application",
   },
