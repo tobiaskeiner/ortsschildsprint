@@ -23,7 +23,7 @@ The app is built around a privacy-first flow: route files are parsed in the brow
 
 ```txt
 .
-├── api/        Cloudflare Worker API built with Hono
+├── api/        Cloudflare Worker API built with Hono used as Service Binding
 ├── docs/       Design documentation and project assets
 ├── frontend/   React + Vite + Tailwind frontend
 ├── shared/     Types shared by frontend and API
@@ -55,13 +55,6 @@ pnpm install
 ```
 
 Create local environment files as needed.
-
-Frontend:
-
-```sh
-# frontend/.env.local
-VITE_OS_API_URL=http://localhost:8787
-```
 
 API:
 
