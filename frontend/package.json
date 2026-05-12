@@ -11,11 +11,11 @@
     "prettier": "pnpm exec prettier . --write"
   },
   "dependencies": {
-    "@cloudflare/vite-plugin": "^1.35.0",
+    "@cloudflare/vite-plugin": "^1.36.3",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/space-grotesk": "^5.2.10",
     "@garmin/fitsdk": "^21.202.0",
-    "@tailwindcss/vite": "^4.2.4",
+    "@tailwindcss/vite": "^4.3.0",
     "@tmcw/togeojson": "^7.1.2",
     "@turf/bbox": "^7.3.5",
     "@turf/boolean-point-in-polygon": "^7.3.5",
@@ -27,12 +27,12 @@
     "@turf/point-to-line-distance": "^7.3.5",
     "maplibre-gl": "^5.24.0",
     "rbush": "^4.0.1",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "react-dropzone": "^15.0.0",
-    "react-intl": "^10.1.4",
+    "react-intl": "^10.1.5",
     "react-map-gl": "^8.1.1",
-    "tailwindcss": "^4.2.4",
+    "tailwindcss": "^4.3.0",
     "xml-formatter": "^3.7.0"
   },
   "devDependencies": {
@@ -45,7 +45,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "babel-plugin-formatjs": "^11.3.5",
+    "babel-plugin-formatjs": "^11.3.6",
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^9.39.4",
     "eslint-plugin-react-dom": "^4.2.3",
@@ -55,8 +55,8 @@
     "globals": "^17.6.0",
     "prettier": "^3.8.3",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.59.1",
-    "vite": "^8.0.10",
-    "wrangler": "^4.87.0"
+    "typescript-eslint": "^8.59.3",
+    "vite": "^8.0.12",
+    "wrangler": "^4.90.0"
   }
 }
