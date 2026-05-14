@@ -8,6 +8,13 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "prettier": "pnpm exec prettier . --write"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "workerd"
+    ]
+  },
   "dependencies": {
     "@hono/zod-validator": "^0.8.0",
     "@supabase/supabase-js": "^2.105.4",
