@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "packageManager": "pnpm@11.1.1",
+  "packageManager": "pnpm@11.1.2",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -19,7 +19,7 @@
     ]
   },
   "dependencies": {
-    "@cloudflare/vite-plugin": "^1.36.3",
+    "@cloudflare/vite-plugin": "^1.37.0",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/space-grotesk": "^5.2.10",
     "@garmin/fitsdk": "^21.202.0",
@@ -39,33 +39,33 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-dropzone": "^15.0.0",
-    "react-intl": "^10.1.5",
+    "react-intl": "^10.1.6",
     "react-map-gl": "^8.1.1",
     "tailwindcss": "^4.3.0",
     "xml-formatter": "^3.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^10.0.1",
     "@rolldown/plugin-babel": "^0.2.3",
     "@types/babel__core": "^7.20.5",
-    "@types/node": "^24.12.0",
+    "@types/node": "^25.7.0",
     "@types/rbush": "^4.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "babel-plugin-formatjs": "^11.3.6",
+    "babel-plugin-formatjs": "^11.3.7",
     "babel-plugin-react-compiler": "^1.0.0",
-    "eslint": "^9.39.4",
-    "eslint-plugin-react-dom": "^4.2.3",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-dom": "^5.7.8",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
-    "eslint-plugin-react-x": "^4.2.3",
+    "eslint-plugin-react-x": "^5.7.8",
     "globals": "^17.6.0",
     "prettier": "^3.8.3",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.59.3",
-    "vite": "^8.0.12",
-    "wrangler": "^4.90.0"
+    "vite": "^8.0.13",
+    "wrangler": "^4.91.0"
   }
 }
