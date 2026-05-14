@@ -14,7 +14,7 @@ import { buildRouteIndex, findSnapCandidates } from "../utils/indexRoute";
 
 interface parseFileProps {
   file: File;
-  setParseSuccessful?: (state: boolean) => void;
+  onSuccess?: () => void;
 }
 
 const getParseErrorMessageId = (error: unknown) => {
@@ -70,7 +70,8 @@ export const parseFitToGeoJson = (
 const useParseFile = () => {
   const geoJsonContext = use(GeoJsonContext);
 
-  const parseFile = async ({ file, setParseSuccessful }: parseFileProps) => {
+  const parseFile = async ({ file, onSuccess }: parseFileProps) => {
+    geoJsonContext?.reset();
     geoJsonContext?.setParseState("inProgress");
     geoJsonContext?.setParseError(null);
     try {
@@ -121,7 +122,7 @@ const useParseFile = () => {
 
       geoJsonContext?.setParseState("Done");
       geoJsonContext?.setParseError(null);
-      if (setParseSuccessful) setParseSuccessful(true);
+      onSuccess?.();
 
       // already fetch signs for performance
       const bound = bbox(geoJson);

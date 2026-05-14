@@ -16,6 +16,7 @@
     "@fontsource-variable/space-grotesk": "^5.2.10",
     "@garmin/fitsdk": "^21.202.0",
     "@tailwindcss/vite": "^4.3.0",
+    "@tanstack/react-router": "^1.169.2",
     "@tmcw/togeojson": "^7.1.2",
     "@turf/bbox": "^7.3.5",
     "@turf/boolean-point-in-polygon": "^7.3.5",

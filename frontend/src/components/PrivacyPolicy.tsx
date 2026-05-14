@@ -10,10 +10,6 @@ import {
   privacyPolicyUpdatedAt as enPrivacyPolicyUpdatedAt,
 } from "../content/privacyPolicy.en";
 
-interface PrivacyPolicyProps {
-  titleId: "legalnotice.title" | "legal.privacyPolicy.title";
-}
-
 const linkClassName = "font-medium text-primary underline underline-offset-2";
 const inlineTokenPattern =
   /https?:\/\/[^\s]+|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
@@ -75,7 +71,7 @@ const renderInlineLinks = (text: string): ReactNode[] => {
   return nodes;
 };
 
-const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ titleId }) => {
+const PrivacyPolicy: React.FC = () => {
   const intl = useIntl();
   const isGerman = intl.locale === "de";
   const privacyPolicySections = isGerman
@@ -89,7 +85,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ titleId }) => {
     <section className="mx-auto flex w-full max-w-4xl flex-1 flex-col">
       <div className="rounded-[2rem] border border-outline-variant/50 bg-surface-container-lowest p-6 shadow-sm sm:p-8 md:p-10">
         <h1 className="mb-2 text-3xl font-headline font-black tracking-tight text-on-surface sm:text-4xl">
-          <FormattedMessage id={titleId} />
+          <FormattedMessage id="legal.privacyPolicy.title" />
         </h1>
         <p className="mb-8 text-sm font-medium text-secondary">
           Stand: {privacyPolicyUpdatedAt}

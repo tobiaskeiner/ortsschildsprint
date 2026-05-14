@@ -6,8 +6,8 @@
   "services": [
     {
       "binding": "ORTSSCHILDSPRINT_API",
-      "service": "ortsschildsprint-api"
-    }
+      "service": "ortsschildsprint-api",
+    },
   ],
   "assets": {
     "not_found_handling": "single-page-application",

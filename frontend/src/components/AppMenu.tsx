@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import type { AppLocale } from "../translations";
-import type { AppRoute } from "../utils/appRoutes";
 import LocaleSwitcher from "./LocaleSwitcher";
+import {
+  LEGAL_NOTICE_ROUTE,
+  PRIVACY_POLICY_ROUTE,
+  normalizePathname,
+} from "../utils/routes";
 
 interface AppMenuProps {
-  currentRoute: AppRoute;
+  currentPathname: string;
   locale: AppLocale;
   onLocaleChange: (locale: AppLocale) => void;
-  onNavigate: (route: AppRoute) => void;
+  onNavigate: (route: string) => void;
 }
 
 interface MenuActionProps {
@@ -77,7 +81,7 @@ const MenuAction: React.FC<MenuActionProps> = ({
 };
 
 const AppMenu: React.FC<AppMenuProps> = ({
-  currentRoute,
+  currentPathname,
   locale,
   onLocaleChange,
   onNavigate,
@@ -88,17 +92,17 @@ const AppMenu: React.FC<AppMenuProps> = ({
   const internalLinks: {
     icon: string;
     labelId: string;
-    route: AppRoute;
+    route: string;
   }[] = [
     {
       icon: "description",
       labelId: "menu.link.legalnotice",
-      route: "/legal-notice",
+      route: LEGAL_NOTICE_ROUTE,
     },
     {
       icon: "shield_lock",
       labelId: "menu.link.privacyPolicy",
-      route: "/privacy-policy",
+      route: PRIVACY_POLICY_ROUTE,
     },
   ];
 
@@ -146,7 +150,7 @@ const AppMenu: React.FC<AppMenuProps> = ({
             {internalLinks.map(({ icon, labelId, route }) => (
               <MenuAction
                 key={route}
-                active={currentRoute === route}
+                active={normalizePathname(currentPathname) === route}
                 icon={icon}
                 labelId={labelId}
                 onClick={() => {

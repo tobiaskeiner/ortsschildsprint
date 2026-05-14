@@ -4,14 +4,15 @@ import { use } from "react";
 import { GeoJsonContext } from "../context/GeoJsonContext";
 import ErrorAlert from "../components/ErrorAlert";
 import { FormattedMessage } from "react-intl";
+import { useNavigate } from "@tanstack/react-router";
+import { WORKFLOW_ROUTE } from "../utils/routes";
 
-interface HomeProps {
-  setParseSuccessful: (state: boolean) => void;
-}
-
-const Home: React.FC<HomeProps> = (props) => {
+const Home: React.FC = () => {
   const geoContext = use(GeoJsonContext);
-  const { setParseSuccessful } = props;
+  const navigate = useNavigate();
+  const navigateToWorkflow = () => {
+    void navigate({ to: WORKFLOW_ROUTE as never });
+  };
 
   return (
     <>
@@ -43,7 +44,11 @@ const Home: React.FC<HomeProps> = (props) => {
           </div>
         </div>
         <div className="xl:col-span-3">
-          <FileUploader setParseSuccessful={setParseSuccessful} />
+          <FileUploader
+            onParseSuccessful={() => {
+              navigateToWorkflow();
+            }}
+          />
           <div className="mt-5 xl:hidden">
             <PrivacyStatement />
           </div>

@@ -5,11 +5,11 @@ import { GeoJsonContext } from "../context/GeoJsonContext";
 import { FormattedMessage } from "react-intl";
 
 interface FileUploaderProps {
-  setParseSuccessful: (state: boolean) => void;
+  onParseSuccessful?: () => void;
 }
 
 const FileUploader: React.FC<FileUploaderProps> = (props) => {
-  const { setParseSuccessful } = props;
+  const { onParseSuccessful } = props;
   const geoContext = use(GeoJsonContext);
   const { parseFile } = useFileParse();
   const [isTouchDevice, setIsTouchDevice] = useState(() => {
@@ -50,7 +50,7 @@ const FileUploader: React.FC<FileUploaderProps> = (props) => {
           onDrop={(acceptedFiles) =>
             void parseFile({
               file: acceptedFiles[0],
-              setParseSuccessful,
+              onSuccess: onParseSuccessful,
             })
           }
         >

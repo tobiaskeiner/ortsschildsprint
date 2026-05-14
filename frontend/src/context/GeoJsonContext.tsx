@@ -53,9 +53,15 @@ const GeoJsonProvider = ({ children }: { children: React.ReactNode }) => {
 
   const reset = () => {
     setCenter(undefined);
+    setFileExtension(undefined);
     setGeoJson(undefined);
-    setParseState("pending");
     setParseError(null);
+    setParseState("pending");
+    setRawFileName(undefined);
+    setRouteLength(undefined);
+    setRouteName(undefined);
+    setRouteXml(undefined);
+    setSigns(undefined);
   };
 
   return (

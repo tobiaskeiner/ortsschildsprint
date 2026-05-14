@@ -1,24 +1,25 @@
 import { FormattedMessage, useIntl } from "react-intl";
 import type { AppLocale } from "../translations";
-import type { AppRoute } from "../utils/appRoutes";
 import type { Step } from "./Stepper";
 import AppMenu from "./AppMenu";
 import Stepper from "./Stepper";
 
 interface AppHeaderProps {
-  currentRoute: AppRoute;
+  currentPathname: string;
   locale: AppLocale;
   onLocaleChange: (locale: AppLocale) => void;
-  onNavigate: (route: AppRoute) => void;
+  onNavigate: (route: string) => void;
+  onHomeNavigate: () => void;
   showStepper: boolean;
   steps: Step[];
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
-  currentRoute,
+  currentPathname,
   locale,
   onLocaleChange,
   onNavigate,
+  onHomeNavigate,
   showStepper,
   steps,
 }) => {
@@ -37,7 +38,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="min-w-0 flex-1 md:flex-none md:overflow-hidden">
           <button
             className="max-w-full text-left text-xl font-headline font-black italic tracking-tighter uppercase transition-opacity hover:cursor-pointer hover:opacity-75 sm:text-2xl"
-            onClick={() => onNavigate("/")}
+            onClick={onHomeNavigate}
             type="button"
             aria-label={intl.formatMessage({ id: "navbar.logo.label" })}
           >
@@ -54,7 +55,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         )}
         <div className="flex shrink-0 justify-end md:justify-self-end">
           <AppMenu
-            currentRoute={currentRoute}
+            currentPathname={currentPathname}
             locale={locale}
             onLocaleChange={onLocaleChange}
             onNavigate={onNavigate}

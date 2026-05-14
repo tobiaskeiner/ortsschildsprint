@@ -6,7 +6,10 @@ interface LocaleSwitcherProps {
   onChange: (locale: AppLocale) => void;
 }
 
-const LocaleSwitcher: React.FC<LocaleSwitcherProps> = ({ locale, onChange }) => {
+const LocaleSwitcher: React.FC<LocaleSwitcherProps> = ({
+  locale,
+  onChange,
+}) => {
   const intl = useIntl();
 
   return (

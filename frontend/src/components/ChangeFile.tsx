@@ -2,7 +2,11 @@ import Dropzone from "react-dropzone";
 import useFileParse from "../hooks/useParseFile";
 import { FormattedMessage } from "react-intl";
 
-const ChangeFile: React.FC = () => {
+interface ChangeFileProps {
+  onParseSuccessful?: () => void;
+}
+
+const ChangeFile: React.FC<ChangeFileProps> = ({ onParseSuccessful }) => {
   const { parseFile } = useFileParse();
 
   return (
@@ -13,6 +17,7 @@ const ChangeFile: React.FC = () => {
         onDrop={(acceptedFiles) =>
           void parseFile({
             file: acceptedFiles[0],
+            onSuccess: onParseSuccessful,
           })
         }
       >
