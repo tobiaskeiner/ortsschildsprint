@@ -1,6 +1,7 @@
 {
   "name": "api",
   "type": "module",
+  "packageManager": "pnpm@11.1.1",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
