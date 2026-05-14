@@ -4,3 +4,8 @@ packages:
   - api
 overrides:
   protocol-buffers-schema@<3.6.1: '>=3.6.1'
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - workerd

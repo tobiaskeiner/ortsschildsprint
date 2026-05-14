@@ -11,6 +11,13 @@
     "preview": "vite preview",
     "prettier": "pnpm exec prettier . --write"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "workerd"
+    ]
+  },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.36.3",
     "@fontsource-variable/inter": "^5.2.8",
