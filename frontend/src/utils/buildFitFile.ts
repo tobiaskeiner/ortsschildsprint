@@ -42,8 +42,17 @@ export const buildFitFromGeoJson = (
     );
   }
   const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
-
   const now = new Date();
+  const timestampForDistance = (distance: number): Date => {
+    const nextRecordIndex = cumulativeDistances.findIndex(
+      (recordDistance) => recordDistance >= distance,
+    );
+    const recordIndex =
+      nextRecordIndex === -1 ? cumulativeDistances.length - 1 : nextRecordIndex;
+
+    return new Date(now.getTime() + recordIndex * 1000);
+  };
+
   const encoder = new Encoder();
 
   // 1. FILE_ID — required header, type "course" = 6
@@ -88,12 +97,12 @@ export const buildFitFromGeoJson = (
 
     encoder.onMesg(Profile.MesgNum.COURSE_POINT, {
       messageIndex: index,
-      timestamp: new Date(now.getTime() + index * 1000),
+      timestamp: timestampForDistance(sign.positionOnRoute.distanceAlongRoute),
       positionLat: toSemicircles(sign.positionOnRoute.lat),
       positionLong: toSemicircles(sign.positionOnRoute.long),
       distance: sign.positionOnRoute.distanceAlongRoute,
       name: (sign.tags.name ?? "Ortsschild").slice(0, 15),
-      type: "straight", // "danger" also works and might suit sprints!
+      type: "sprint",
     });
   });
 
