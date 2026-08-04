@@ -15,13 +15,13 @@ importers:
     dependencies:
       '@hono/zod-validator':
         specifier: ^0.8.0
-        version: 0.8.0(hono@4.12.18)(zod@4.4.3)
+        version: 0.8.0(hono@4.12.34)(zod@4.4.3)
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.105.4
       hono:
-        specifier: ^4.12.18
-        version: 4.12.18
+        specifier: ^4.12.34
+        version: 4.12.34
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -1637,8 +1637,8 @@ packages:
   hermes-parser@0.25.1:
     resolution: {integrity: sha512-6pEjquH3rqaI6cYAXYPcz9MS4rY6R4ngRgrgfDshRptUZIc3lw0MCIJIGDj9++mfySOuPTHB4nrSW99BCvOPIA==}
 
-  hono@4.12.18:
-    resolution: {integrity: sha512-RWzP96k/yv0PQfyXnWjs6zot20TqfpfsNXhOnev8d1InAxubW93L11/oNUc3tQqn2G0bSdAOBpX+2uDFHV7kdQ==}
+  hono@4.12.34:
+    resolution: {integrity: sha512-GqXJqY/xJkJmuloTrnV1ZEXG3fqte+VjkUqoRNZXcrUidiUOP4fMSIHHY4tsqZBK++kVyWmt/AAfSUuy57/eSA==}
     engines: {node: '>=16.9.0'}
 
   iceberg-js@0.8.1:
@@ -2644,9 +2644,9 @@ snapshots:
 
   '@garmin/fitsdk@21.202.0': {}
 
-  '@hono/zod-validator@0.8.0(hono@4.12.18)(zod@4.4.3)':
+  '@hono/zod-validator@0.8.0(hono@4.12.34)(zod@4.4.3)':
     dependencies:
-      hono: 4.12.18
+      hono: 4.12.34
       zod: 4.4.3
 
   '@humanfs/core@0.19.2':
@@ -3743,7 +3743,7 @@ snapshots:
     dependencies:
       hermes-estree: 0.25.1
 
-  hono@4.12.18: {}
+  hono@4.12.34: {}
 
   iceberg-js@0.8.1: {}
 
