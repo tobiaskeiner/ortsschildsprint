@@ -1,7 +1,7 @@
 {
   "name": "api",
   "type": "module",
-  "packageManager": "pnpm@11.1.2",
+  "packageManager": "pnpm@11.22.0",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
@@ -16,13 +16,13 @@
     ]
   },
   "dependencies": {
-    "@hono/zod-validator": "^0.8.0",
-    "@supabase/supabase-js": "^2.105.4",
-    "hono": "^4.12.18",
+    "@hono/zod-validator": "^0.9.0",
+    "@supabase/supabase-js": "^2.112.3",
+    "hono": "^4.13.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "prettier": "^3.8.3",
-    "wrangler": "^4.91.0"
+    "prettier": "^3.9.6",
+    "wrangler": "^4.124.0"
   }
 }
