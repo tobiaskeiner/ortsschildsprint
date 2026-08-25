@@ -6,6 +6,9 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 
 // https://vite.dev/config/
 export default defineConfig({
+  optimizeDeps: {
+    exclude: ["maplibre-gl"],
+  },
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset()] }),
