@@ -3,9 +3,9 @@
 @font-face {
   font-family: "Material Symbols Outlined";
   font-style: normal;
-  font-weight: 100 700;
-  font-display: swap;
-  src: url("../public/fonts/material-symbols.woff2") format("woff2");
+  font-weight: 400;
+  font-display: block;
+  src: url("../public/fonts/material-symbols.ttf") format("truetype");
 }
 
 .material-symbols-outlined {
@@ -65,6 +65,28 @@ body,
   font-family: var(--font-body);
   color: var(--color-on-surface);
   background: var(--color-surface);
+}
+
+:root[data-theme="dark"] {
+  --color-primary: #f0ca00;
+  --color-primary-container: #4e4200;
+  --color-on-primary-container: #ffe169;
+  --color-surface: #111415;
+  --color-surface-container-low: #191d1e;
+  --color-surface-container: #1d2122;
+  --color-surface-container-high: #282c2d;
+  --color-surface-container-highest: #323637;
+  --color-surface-container-lowest: #0d0f10;
+  --color-on-surface: #e1e3e4;
+  --color-on-surface-variant: #d0c6ab;
+  --color-secondary: #bbbfc0;
+  --color-outline-variant: #4d4632;
+  --color-success: #73d96a;
+  --color-error-container: #93000a;
+  --color-error: #ffb4ab;
+  --color-outline: #989179;
+  --color-tertiary-container: #004d5e;
+  --color-tertiary: #62dcff;
 }
 
 body {

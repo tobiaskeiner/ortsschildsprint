@@ -3,11 +3,14 @@ import type { AppLocale } from "../translations";
 import type { Step } from "./Stepper";
 import AppMenu from "./AppMenu";
 import Stepper from "./Stepper";
+import type { AppTheme } from "../context/AppThemeContext";
 
 interface AppHeaderProps {
   currentPathname: string;
   locale: AppLocale;
   onLocaleChange: (locale: AppLocale) => void;
+  theme: AppTheme;
+  onThemeChange: (theme: AppTheme) => void;
   onNavigate: (route: string) => void;
   onHomeNavigate: () => void;
   showStepper: boolean;
@@ -18,6 +21,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   currentPathname,
   locale,
   onLocaleChange,
+  theme,
+  onThemeChange,
   onNavigate,
   onHomeNavigate,
   showStepper,
@@ -58,7 +63,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             currentPathname={currentPathname}
             locale={locale}
             onLocaleChange={onLocaleChange}
+            onThemeChange={onThemeChange}
             onNavigate={onNavigate}
+            theme={theme}
           />
         </div>
       </nav>

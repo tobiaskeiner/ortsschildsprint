@@ -3,6 +3,7 @@ import { use } from "react";
 import type { Step } from "../components/Stepper";
 import AppHeader from "../components/AppHeader";
 import { AppLocaleContext } from "../context/AppLocaleContext";
+import { AppThemeContext } from "../context/AppThemeContext";
 import { FormattedMessage } from "react-intl";
 import { messages } from "../translations";
 import {
@@ -17,12 +18,13 @@ import {
 
 const RootLayout: React.FC = () => {
   const localeContext = use(AppLocaleContext);
+  const themeContext = use(AppThemeContext);
   const navigate = useNavigate();
   const pathname = useRouterState({
     select: (state) => normalizePathname(state.location.pathname),
   });
 
-  if (!localeContext) return null;
+  if (!localeContext || !themeContext) return null;
 
   const workflowStep = getWorkflowStepFromPathname(pathname);
   const showWorkflowChrome = isWorkflowRoute(pathname);
@@ -81,7 +83,9 @@ const RootLayout: React.FC = () => {
         locale={localeContext.locale}
         onHomeNavigate={() => navigateTo(HOME_ROUTE)}
         onLocaleChange={localeContext.setLocale}
+        onThemeChange={themeContext.setTheme}
         onNavigate={navigateTo}
+        theme={themeContext.theme}
         showStepper={showWorkflowChrome}
         steps={steps}
       />

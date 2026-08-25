@@ -10,6 +10,7 @@ import {
   toggleSnapCandidateSelection,
 } from "../utils/signRouteSelection";
 import { FormattedMessage } from "react-intl";
+import MapMarkerIcon from "../components/MapMarkerIcon";
 
 interface EditProps {
   onContinue: () => void;
@@ -112,20 +113,16 @@ const Edit: React.FC<EditProps> = (props: EditProps) => {
                 onClick={() => setSelectedSignId(sign.id)}
                 className="hover:cursor-pointer"
               >
-                <span
+                <MapMarkerIcon
                   style={{
-                    fontSize: "40px",
-                    fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0",
                     ...(sign.snapResult
                       ? sign.snapResult.status === "ok"
                         ? { color: "black" }
                         : { color: "#ba1a1a" }
                       : { color: "black" }),
                   }}
-                  className={`material-symbols-outlined transition-transform hover:scale-120 ${selectedSign?.id === sign.id ? "text-error" : ""}`}
-                >
-                  location_on
-                </span>
+                  className={`transition-transform hover:scale-120 ${selectedSign?.id === sign.id ? "text-error" : ""}`}
+                />
               </Marker>
             ))}
             {selectedSign?.snapResult?.status === "ambiguous" &&

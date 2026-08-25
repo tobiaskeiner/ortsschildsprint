@@ -3,6 +3,7 @@ import { GeoJsonContext } from "../context/GeoJsonContext";
 import Map, { Source, Layer, Marker } from "react-map-gl/maplibre";
 import { getZoomLevel } from "../utils/getZoomLevel";
 import ExportLabel from "../components/ExportLabel";
+import MapMarkerIcon from "../components/MapMarkerIcon";
 import {
   buildGpx,
   buildGpxFromGeoJson,
@@ -182,15 +183,7 @@ const Export: React.FC = () => {
                     longitude={sign.long}
                     anchor="bottom"
                   >
-                    <span
-                      style={{
-                        fontSize: "40px",
-                        fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0",
-                      }}
-                      className="material-symbols-outlined hover:scale-120"
-                    >
-                      location_on
-                    </span>
+                    <MapMarkerIcon className="transition-transform hover:scale-120" />
                   </Marker>
                 ))}
               </Map>

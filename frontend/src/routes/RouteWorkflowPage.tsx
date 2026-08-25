@@ -8,6 +8,7 @@ import { FormattedMessage } from "react-intl";
 import ChangeFile from "../components/ChangeFile";
 import ErrorAlert from "../components/ErrorAlert";
 import ExportLabel from "../components/ExportLabel";
+import MapMarkerIcon from "../components/MapMarkerIcon";
 import NoSignFound from "../components/NoSignFound";
 import RouteInfo from "../components/RouteInfo";
 import { buildFitFromGeoJson } from "../utils/buildFitFile";
@@ -306,23 +307,18 @@ const RouteWorkflowPage: React.FC = () => {
                         step === "edit" ? "hover:cursor-pointer" : undefined
                       }
                     >
-                      <span
+                      <MapMarkerIcon
                         style={{
-                          fontSize: "40px",
-                          fontVariationSettings:
-                            "'FILL' 1, 'wght' 400, 'GRAD' 0",
                           ...(step === "edit" && sign.snapResult
                             ? sign.snapResult.status === "ok"
                               ? { color: "black" }
                               : { color: "#ba1a1a" }
                             : { color: "black" }),
                         }}
-                        className={`material-symbols-outlined transition-transform ${
+                        className={`transition-transform ${
                           step === "edit" ? "hover:scale-120" : ""
                         } ${selectedSign?.id === sign.id ? "text-error" : ""}`}
-                      >
-                        location_on
-                      </span>
+                      />
                     </Marker>
                   ))}
                 {step === "edit" &&

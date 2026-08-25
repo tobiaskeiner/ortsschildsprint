@@ -19,8 +19,7 @@ interface GeoJsonContextType {
   setParseError: (error: string | null) => void;
   setCenter: (
     center:
-      | GeoJSON.Feature<GeoJSON.Point, GeoJSON.GeoJsonProperties>
-      | undefined,
+      GeoJSON.Feature<GeoJSON.Point, GeoJSON.GeoJsonProperties> | undefined,
   ) => void;
   setSigns: (signs?: Sign[]) => void;
   setRouteName: (name?: string) => void;

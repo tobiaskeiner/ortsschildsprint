@@ -2,16 +2,20 @@ import { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import type { AppLocale } from "../translations";
 import LocaleSwitcher from "./LocaleSwitcher";
+import ThemeSwitcher from "./ThemeSwitcher";
 import {
   LEGAL_NOTICE_ROUTE,
   PRIVACY_POLICY_ROUTE,
   normalizePathname,
 } from "../utils/routes";
+import type { AppTheme } from "../context/AppThemeContext";
 
 interface AppMenuProps {
   currentPathname: string;
   locale: AppLocale;
   onLocaleChange: (locale: AppLocale) => void;
+  theme: AppTheme;
+  onThemeChange: (theme: AppTheme) => void;
   onNavigate: (route: string) => void;
 }
 
@@ -84,6 +88,8 @@ const AppMenu: React.FC<AppMenuProps> = ({
   currentPathname,
   locale,
   onLocaleChange,
+  theme,
+  onThemeChange,
   onNavigate,
 }) => {
   const intl = useIntl();
@@ -136,11 +142,18 @@ const AppMenu: React.FC<AppMenuProps> = ({
             <p className="text-[0.7rem] font-headline font-black uppercase tracking-[0.24em] text-secondary">
               <FormattedMessage id="menu.title" />
             </p>
-            <div className="mt-4">
+            <div className="mt-4 flex items-center justify-between gap-3">
               <LocaleSwitcher
                 locale={locale}
                 onChange={(nextLocale) => {
                   onLocaleChange(nextLocale);
+                  setIsOpen(false);
+                }}
+              />
+              <ThemeSwitcher
+                theme={theme}
+                onChange={(nextTheme) => {
+                  onThemeChange(nextTheme);
                   setIsOpen(false);
                 }}
               />
