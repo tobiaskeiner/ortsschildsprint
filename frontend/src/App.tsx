@@ -4,7 +4,7 @@ import { IntlProvider } from "react-intl";
 import { router } from "./router";
 import { AppLocaleContext } from "./context/AppLocaleContext";
 import { AppThemeContext, type AppTheme } from "./context/AppThemeContext";
-import { GeoJsonProvider } from "./context/GeoJsonContext";
+import { GeoJsonProvider } from "./context/GeoJsonProvider";
 import { isAppLocale, messages, type AppLocale } from "./translations";
 
 const LOCALE_STORAGE_KEY = "app-locale";

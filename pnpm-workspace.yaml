@@ -2,8 +2,6 @@ packages:
   - frontend
   - backend
   - api
-overrides:
-  protocol-buffers-schema@<3.6.1: '>=3.6.1'
 
 onlyBuiltDependencies:
   - esbuild
@@ -14,3 +12,28 @@ allowBuilds:
   esbuild: true
   sharp: true
   workerd: true
+
+minimumReleaseAgeExclude:
+  - '@cloudflare/vite-plugin@1.62.3'
+  - '@cloudflare/workerd-darwin-64@1.20260930.2'
+  - '@cloudflare/workerd-darwin-arm64@1.20260930.2'
+  - '@cloudflare/workerd-linux-64@1.20260930.2'
+  - '@cloudflare/workerd-linux-arm64@1.20260930.2'
+  - '@cloudflare/workerd-windows-64@1.20260930.2'
+  - '@eslint-react/ast@5.23.3'
+  - '@eslint-react/core@5.23.3'
+  - '@eslint-react/eslint@5.23.3'
+  - '@eslint-react/jsx@5.23.3'
+  - '@eslint-react/shared@5.23.3'
+  - '@eslint-react/var@5.23.3'
+  - '@tanstack/react-router@1.170.41'
+  - '@tanstack/router-core@1.171.34'
+  - eslint-plugin-react-dom@5.23.3
+  - eslint-plugin-react-x@5.23.3
+  - hono@4.13.12
+  - miniflare@5.20260930.0-alpha
+  - workerd@1.20260930.2
+  - wrangler@4.145.0
+
+overrides:
+  brace-expansion@>=4.0.0 <5.0.12: ^5.0.12

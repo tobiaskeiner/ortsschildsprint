@@ -1,5 +1,5 @@
 {
-	"packageManager": "pnpm@11.24.0",
+	"packageManager": "pnpm@12.8.1",
 	"scripts": {
 		"dev": "pnpm run -r dev"
 	}
