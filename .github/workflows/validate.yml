@@ -16,7 +16,8 @@ concurrency:
 jobs:
   validate:
     name: Lint, format, test, and build
-    runs-on: ubuntu-latest
+    # Playwright 1.58 supports Ubuntu 24.04; ubuntu-latest currently resolves to 26.04.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 
@@ -41,3 +42,9 @@ jobs:
 
       - name: Build frontend
         run: pnpm run build
+
+      - name: Install Playwright browsers
+        run: pnpm --filter ortsschildsprint-frontend exec playwright install --with-deps chromium
+
+      - name: Run frontend end-to-end tests
+        run: pnpm --filter ortsschildsprint-frontend run test:e2e
