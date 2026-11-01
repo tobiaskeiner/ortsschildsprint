@@ -5,7 +5,6 @@
 		"lint": "pnpm -r --if-present run lint",
 		"prettier:check": "pnpm -r --if-present run prettier:check",
 		"test": "pnpm -r --if-present run test",
-		"build": "pnpm -r --if-present run build",
-		"validate": "pnpm run lint && pnpm run prettier:check && pnpm run test && pnpm run build"
+		"build": "pnpm -r --if-present run build"
 	}
 }
