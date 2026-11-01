@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "prettier:check": "pnpm exec prettier . --check",
-    "prettier": "pnpm exec prettier . --write"
+    "prettier": "pnpm exec prettier . --write",
+    "test:e2e": "playwright test"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -48,6 +49,7 @@
   "devDependencies": {
     "@babel/core": "8.0.10",
     "@eslint/js": "10.0.1",
+    "@playwright/test": "1.58.2",
     "@rolldown/plugin-babel": "0.3.0",
     "@types/babel__core": "7.20.5",
     "@types/node": "26.6.6",

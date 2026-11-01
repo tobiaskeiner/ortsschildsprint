@@ -25,6 +25,8 @@ dist-ssr
 .wrangler
 .dev.vars*
 .env
+test-results/
+playwright-report/
 
 # AI
 .codex
