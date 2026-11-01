@@ -1,6 +1,10 @@
 {
 	"packageManager": "pnpm@12.16.1",
 	"scripts": {
-		"dev": "pnpm run -r dev"
+		"dev": "pnpm run -r dev",
+		"lint": "pnpm -r --if-present run lint",
+		"prettier:check": "pnpm -r --if-present run prettier:check",
+		"test": "pnpm -r --if-present run test",
+		"build": "pnpm -r --if-present run build"
 	}
 }

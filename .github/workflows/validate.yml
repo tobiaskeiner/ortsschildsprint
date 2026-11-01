@@ -1,0 +1,43 @@
+name: Validate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, format, test, and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/setup@v3
+        with:
+          version: 12.16.1
+          runtime: node@26
+          cache: true
+          require-lockfile: true
+
+      - name: Lint frontend
+        run: pnpm run lint
+
+      - name: Check API formatting
+        run: pnpm --filter api run prettier:check
+
+      - name: Check frontend formatting
+        run: pnpm --filter ortsschildsprint-frontend run prettier:check
+
+      - name: Validate API Worker
+        run: pnpm --filter api run test
+
+      - name: Build frontend
+        run: pnpm run build
