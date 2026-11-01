@@ -36,11 +36,14 @@ jobs:
       - name: Lint frontend
         run: pnpm run lint
 
-      - name: Check formatting
-        run: pnpm run prettier:check
+      - name: Check API formatting
+        run: pnpm run prettier:check:api
+
+      - name: Check frontend formatting
+        run: pnpm run prettier:check:frontend
 
       - name: Validate API Worker
-        run: pnpm run test
+        run: pnpm run test:api
 
       - name: Build frontend
         run: pnpm run build

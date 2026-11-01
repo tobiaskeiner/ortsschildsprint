@@ -3,8 +3,11 @@
 	"scripts": {
 		"dev": "pnpm run -r dev",
 		"lint": "pnpm --dir frontend lint",
-		"prettier:check": "pnpm --dir api exec prettier . --check && pnpm --dir frontend exec prettier . --check",
-		"test": "pnpm --dir api test",
+		"prettier:check:api": "pnpm --dir api run prettier:check",
+		"prettier:check:frontend": "pnpm --dir frontend run prettier:check",
+		"prettier:check": "pnpm run prettier:check:api && pnpm run prettier:check:frontend",
+		"test:api": "pnpm --dir api test",
+		"test": "pnpm run test:api",
 		"build": "pnpm --dir frontend build",
 		"validate": "pnpm run lint && pnpm run prettier:check && pnpm run test && pnpm run build"
 	}
