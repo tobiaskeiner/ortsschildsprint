@@ -2,13 +2,10 @@
 	"packageManager": "pnpm@12.16.1",
 	"scripts": {
 		"dev": "pnpm run -r dev",
-		"lint": "pnpm --dir frontend lint",
-		"prettier:check:api": "pnpm --dir api run prettier:check",
-		"prettier:check:frontend": "pnpm --dir frontend run prettier:check",
-		"prettier:check": "pnpm run prettier:check:api && pnpm run prettier:check:frontend",
-		"test:api": "pnpm --dir api test",
-		"test": "pnpm run test:api",
-		"build": "pnpm --dir frontend build",
+		"lint": "pnpm -r --if-present run lint",
+		"prettier:check": "pnpm -r --if-present run prettier:check",
+		"test": "pnpm -r --if-present run test",
+		"build": "pnpm -r --if-present run build",
 		"validate": "pnpm run lint && pnpm run prettier:check && pnpm run test && pnpm run build"
 	}
 }

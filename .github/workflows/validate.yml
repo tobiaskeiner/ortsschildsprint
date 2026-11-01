@@ -37,13 +37,13 @@ jobs:
         run: pnpm run lint
 
       - name: Check API formatting
-        run: pnpm run prettier:check:api
+        run: pnpm --filter api run prettier:check
 
       - name: Check frontend formatting
-        run: pnpm run prettier:check:frontend
+        run: pnpm --filter ortsschildsprint-frontend run prettier:check
 
       - name: Validate API Worker
-        run: pnpm run test:api
+        run: pnpm --filter api run test
 
       - name: Build frontend
         run: pnpm run build
