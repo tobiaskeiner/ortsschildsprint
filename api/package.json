@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
+    "test": "wrangler deploy --dry-run",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "prettier": "pnpm exec prettier . --write"
   },
