@@ -20,18 +20,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/setup@v3
         with:
           version: 12.16.1
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          runtime: node@26
+          cache: true
+          require-lockfile: true
 
       - name: Lint frontend
         run: pnpm run lint
