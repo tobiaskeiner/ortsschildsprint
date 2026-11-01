@@ -30,10 +30,12 @@ minimumReleaseAgeExclude:
   - '@tanstack/router-core@1.171.34'
   - eslint-plugin-react-dom@5.23.3
   - eslint-plugin-react-x@5.23.3
-  - hono@4.13.12
+  - hono@4.13.12 || 4.13.16
   - miniflare@5.20260930.0-alpha
   - workerd@1.20260930.2
   - wrangler@4.145.0
+  - '@formatjs/ts-transformer@4.5.2'
+  - babel-plugin-formatjs@13.0.10
 
 overrides:
   brace-expansion@>=4.0.0 <5.0.12: ^5.0.12
