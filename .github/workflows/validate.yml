@@ -44,7 +44,7 @@ jobs:
         run: pnpm run build
 
       - name: Install Playwright browsers
-        run: pnpm --filter ortsschildsprint-frontend exec playwright install --with-deps chromium
+        run: pnpm --filter ortsschildsprint-frontend exec playwright install --with-deps
 
       - name: Run frontend end-to-end tests
         run: pnpm --filter ortsschildsprint-frontend run test:e2e
