@@ -50,7 +50,7 @@
     "@babel/core": "8.1.0",
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.65.0",
-    "@rolldown/plugin-babel": "0.3.0",
+    "@rolldown/plugin-babel": "0.3.1",
     "@types/babel__core": "7.20.5",
     "@types/node": "26.6.6",
     "@types/rbush": "4.0.0",
