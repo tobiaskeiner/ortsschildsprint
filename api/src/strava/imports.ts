@@ -1,5 +1,10 @@
 import { supabase } from "../supabase";
-import { getAccessToken, stravaApi } from "./client";
+import {
+  getAccessToken,
+  rateLimitPauseUntil,
+  stravaApi,
+  StravaRateLimitError,
+} from "./client";
 import {
   getProcessedActivityCount,
   getUnprocessedActivityIds,
@@ -103,23 +108,28 @@ const getTotalRideCount = async (accessToken: string) => {
 };
 
 const refreshTotalRideCount = async (athleteId: number) => {
-  const { data: importState, error: stateError } = await supabase
-    .from("strava_import_state")
-    .select("total_ride_count")
-    .eq("athlete_id", athleteId)
-    .maybeSingle();
-  if (stateError) throw new Error(stateError.message);
-  if (!importState || importState.total_ride_count !== null) return;
+  // The claim keeps concurrent dashboard loads from duplicating the scan. A
+  // failed scan deliberately leaves the claim in place: it goes stale after
+  // ten minutes, so repeated failures back off instead of re-scanning on
+  // every dashboard load.
+  const { data: claimed, error: claimError } = await supabase.rpc(
+    "claim_total_ride_count_refresh",
+    { athlete_id_input: athleteId },
+  );
+  if (claimError) throw new Error(claimError.message);
+  if (!claimed) return;
 
   const totalRideCount = await getTotalRideCount(
     await getAccessToken(athleteId),
   );
-  const { error: updateError } = await supabase
-    .from("strava_import_state")
-    .update({ total_ride_count: totalRideCount })
-    .eq("athlete_id", athleteId)
-    .is("total_ride_count", null);
-  if (updateError) throw new Error(updateError.message);
+  const { error: completeError } = await supabase.rpc(
+    "complete_total_ride_count_refresh",
+    {
+      athlete_id_input: athleteId,
+      total_ride_count_input: totalRideCount,
+    },
+  );
+  if (completeError) throw new Error(completeError.message);
 };
 
 /**
@@ -160,6 +170,26 @@ const processActivities = async (
   }
 };
 
+/**
+ * Processes up to one batch of unprocessed eligible rides from the athlete's
+ * newest activities, catching rides whose webhook delivery was missed (Strava
+ * retries only three times). Used by import batches and scheduled
+ * reconciliation. Returns the rides it processed and the page size scanned.
+ */
+const syncRecentRides = async (athleteId: number, accessToken: string) => {
+  const activities = await getActivities(accessToken);
+  const processedActivityIds = await getUnprocessedActivityIds(
+    athleteId,
+    activities.map((activity) => activity.id),
+  );
+  const rides = activities
+    .filter(isOutdoorRide)
+    .filter((activity) => !processedActivityIds.has(activity.id))
+    .slice(0, HISTORIC_RIDES_PER_BATCH);
+  await processActivities(athleteId, rides, accessToken);
+  return { processedRides: rides, scannedActivities: activities.length };
+};
+
 const importHistoricBatch = async (athleteId: number) => {
   const { data: state, error: stateError } = await supabase
     .from("strava_import_state")
@@ -172,6 +202,26 @@ const importHistoricBatch = async (athleteId: number) => {
   }
 
   const accessToken = await getAccessToken(athleteId);
+
+  // Reconcile the newest rides before walking the historic cursor. The cursor
+  // is untouched, so the historic walk continues independently.
+  const { processedRides: recentRides, scannedActivities: recentScanned } =
+    await syncRecentRides(athleteId, accessToken);
+  if (recentRides.length > 0) {
+    const { error } = await supabase.from("strava_import_state").upsert({
+      athlete_id: athleteId,
+      completed: false,
+      analyzed_ride_count: await getProcessedActivityCount(athleteId),
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw new Error(error.message);
+    return {
+      completed: false,
+      processedActivities: recentRides.length,
+      scannedActivities: recentScanned,
+    };
+  }
+
   const activities = await getActivities(accessToken, {
     before: state?.next_before_epoch,
   });
@@ -254,16 +304,20 @@ const deferFailedScheduledImport = async (athleteId: number) => {
  * Processes one import batch for every pending athlete per schedule, so a
  * backlog for one athlete cannot starve the others. The database lock still
  * bounds each athlete to one batch at a time, and the athlete cap and time
- * budget keep a single scheduled invocation inside Worker limits.
+ * budget keep a single scheduled invocation inside Worker limits. Returns the
+ * epoch time until which Strava requests should pause when a rate limit was
+ * hit, or null.
  */
 const runScheduledImportBatches = async (
   getPendingAthleteIds: () => Promise<number[]>,
   importBatch: (athleteId: number) => Promise<unknown>,
-) => {
+  maxAthletes: number = MAX_ATHLETES_PER_SCHEDULE,
+  budgetMilliseconds: number = SCHEDULED_IMPORT_BUDGET_MILLISECONDS,
+): Promise<number | null> => {
   const pendingAthleteIds = await getPendingAthleteIds();
-  const deadline = Date.now() + SCHEDULED_IMPORT_BUDGET_MILLISECONDS;
+  const deadline = Date.now() + budgetMilliseconds;
   for (const [index, athleteId] of pendingAthleteIds.entries()) {
-    if (index >= MAX_ATHLETES_PER_SCHEDULE || Date.now() >= deadline) return;
+    if (index >= maxAthletes || Date.now() >= deadline) return null;
     try {
       await importBatch(athleteId);
     } catch (error) {
@@ -273,8 +327,15 @@ const runScheduledImportBatches = async (
         `Scheduled Strava import failed for athlete ${athleteId}`,
         error,
       );
+      // Strava's application-wide rate limit is shared by all athletes, so a
+      // rate-limited batch pauses the remaining Strava work in this run
+      // instead of burning it on requests that would also be rejected.
+      if (error instanceof StravaRateLimitError) {
+        return rateLimitPauseUntil(error);
+      }
     }
   }
+  return null;
 };
 
 const getPendingHistoricAthleteIds = async () => {
@@ -311,4 +372,42 @@ export const runScheduledInitialImport = () =>
   runScheduledImportBatches(
     getPendingInitialAthleteIds,
     importInitialRidesExclusively,
+  );
+
+const RECONCILE_ATHLETES_PER_SCHEDULE = 5;
+const RECONCILE_BUDGET_MILLISECONDS = 30 * 1_000;
+
+const reconcileAthlete = async (athleteId: number) => {
+  const accessToken = await getAccessToken(athleteId);
+  const { processedRides } = await syncRecentRides(athleteId, accessToken);
+  await supabase.from("strava_import_state").upsert({
+    athlete_id: athleteId,
+    last_reconciled_at: new Date().toISOString(),
+    ...(processedRides.length > 0
+      ? { analyzed_ride_count: await getProcessedActivityCount(athleteId) }
+      : {}),
+  });
+};
+
+/**
+ * Reconciles a few connected athletes per schedule, round-robin by
+ * `last_reconciled_at`, so a ride whose webhook delivery was missed is
+ * recovered for every connected athlete without waiting for an Import
+ * request — including athletes whose historic import already completed.
+ */
+export const runScheduledReconciliation = () =>
+  runScheduledImportBatches(
+    async () => {
+      const { data, error } = await supabase
+        .from("strava_import_state")
+        .select("athlete_id")
+        .order("last_reconciled_at", { ascending: true, nullsFirst: true })
+        .limit(RECONCILE_ATHLETES_PER_SCHEDULE);
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((state) => state.athlete_id as number);
+    },
+    (athleteId) =>
+      withStravaImportLock(athleteId, () => reconcileAthlete(athleteId)),
+    RECONCILE_ATHLETES_PER_SCHEDULE,
+    RECONCILE_BUDGET_MILLISECONDS,
   );

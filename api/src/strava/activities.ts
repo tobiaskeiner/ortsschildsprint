@@ -160,6 +160,21 @@ export const removeActivityCollection = async (
 };
 
 /**
+ * Reports whether the athlete still has a stored row. Used to distinguish a
+ * moot removal (the athlete is already gone) from an authorization that
+ * cannot be verified right now.
+ */
+const hasStoredAthlete = async (athleteId: number) => {
+  const { data: athlete, error } = await supabase
+    .from("strava_athletes")
+    .select("athlete_id")
+    .eq("athlete_id", athleteId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return athlete !== null;
+};
+
+/**
  * Confirms with Strava's API that an activity is really unavailable to this
  * integration (deleted, private, or behind a revoked authorization) before
  * collection data is removed. Webhook deliveries are unauthenticated, so a
@@ -183,13 +198,16 @@ export const isActivityUnavailable = async (
       // refreshed token means the authorization itself was revoked.
       return error.status === 404 || error.status === 401;
     }
-    if (
-      error instanceof StravaAthleteNotConnectedError ||
-      error instanceof StravaReconnectRequiredError
-    ) {
-      // Nothing is stored for an unconnected athlete, and a revoked
-      // authorization cannot be re-verified; removal is safe in both cases.
+    if (error instanceof StravaAthleteNotConnectedError) {
+      // Nothing is stored for an unconnected athlete; removal is a safe no-op.
       return true;
+    }
+    if (error instanceof StravaReconnectRequiredError) {
+      // The authorization cannot be verified right now, and a rejected
+      // refresh token alone is not enough to delete an activity collection.
+      // When the athlete row is already gone the removal is moot; otherwise
+      // throw so the event is retried instead of deleting data.
+      return !(await hasStoredAthlete(athleteId));
     }
     throw error;
   }

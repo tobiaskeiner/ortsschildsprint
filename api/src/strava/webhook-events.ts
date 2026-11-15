@@ -4,7 +4,12 @@ import {
   processActivity,
   removeActivityCollection,
 } from "./activities";
-import { isAthleteAuthorized, StravaAthleteNotConnectedError } from "./client";
+import {
+  isAthleteAuthorized,
+  rateLimitPauseUntil,
+  StravaAthleteNotConnectedError,
+  StravaRateLimitError,
+} from "./client";
 import { withStravaImportLock } from "./imports";
 import type { StravaWebhookEvent } from "./types";
 
@@ -82,6 +87,10 @@ const failWebhookEvent = async (
     event_id_input: eventId,
     lock_id_input: lockId,
     error_input: error instanceof Error ? error.message : String(error),
+    // A rate-limited attempt retries when Strava says so instead of after the
+    // fixed backoff.
+    retry_after_seconds_input:
+      error instanceof StravaRateLimitError ? error.retryAfterSeconds : null,
   });
   if (failError) throw new Error(failError.message);
 };
@@ -183,6 +192,9 @@ export const processStravaWebhookEvent = async (eventId: number) => {
       console.error("Could not record Strava webhook failure", failError);
     }
     console.error("Could not process Strava webhook event", error);
+    // Rate limits are propagated so the scheduler can pause the remaining
+    // Strava work in this run instead of retrying into the limit.
+    if (error instanceof StravaRateLimitError) throw error;
     return false;
   }
 };
@@ -220,7 +232,7 @@ export const recordStravaWebhookEvent = async (event: StravaWebhookEvent) => {
   return existingEvent.id as number;
 };
 
-export const runScheduledWebhookRetries = async () => {
+export const runScheduledWebhookRetries = async (): Promise<number | null> => {
   const { data, error } = await supabase
     .from("strava_webhook_events")
     .select("id")
@@ -231,8 +243,16 @@ export const runScheduledWebhookRetries = async () => {
   if (error) throw new Error(error.message);
 
   for (const event of data ?? []) {
-    await processStravaWebhookEvent(event.id as number);
+    try {
+      await processStravaWebhookEvent(event.id as number);
+    } catch (error) {
+      if (error instanceof StravaRateLimitError) {
+        return rateLimitPauseUntil(error);
+      }
+      throw error;
+    }
   }
+  return null;
 };
 
 export const pruneProcessedWebhookEvents = async () => {

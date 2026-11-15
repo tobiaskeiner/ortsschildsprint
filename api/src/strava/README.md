@@ -88,6 +88,14 @@ confirms them.
   deployed Worker continues one import batch per pending athlete every five
   minutes, up to 25 athletes per run. Only one batch for an athlete can run at
   a time; another request receives a `409` and can be retried shortly.
+- Each batch first reconciles the newest rides before walking the historic
+  cursor, so a ride whose webhook delivery was missed (Strava retries only
+  three times) is imported by the next batch or Import request. The historic
+  cursor is untouched by this reconciliation.
+- The scheduler also reconciles a few connected athletes per run, round-robin,
+  so a missed webhook delivery is recovered for every connected athlete
+  without an Import request — including athletes whose historic import already
+  completed.
 - A historic batch uses one activity-listing request, then one route-stream
   request for each previously unprocessed ride. The listing already supplies
   the metadata needed to filter historic rides, and one access token is reused
@@ -97,8 +105,10 @@ confirms them.
 - Routes are split only for Supabase sign matching; that does not add Strava
   requests.
 - Activity completion and sign collection are written atomically. A failed
-  webhook is retried by the hourly scheduler with backoff; an activity whose
-  route stream is not ready is therefore not incorrectly marked as processed.
+  webhook event is retried by the scheduler with backoff (using Strava's
+  Retry-After when provided) and abandoned after 12 attempts (roughly seven
+  hours), recorded with its last error; an activity whose route stream is not
+  ready is therefore not incorrectly marked as processed.
 - When historic imports later reach an older matching ride, the collection is
   attributed to that earlier ride. This makes `first_activity_id` and
   `collected_at` correct once the full history has finished importing.

@@ -11,6 +11,7 @@ import {
 import {
   runScheduledHistoricImport,
   runScheduledInitialImport,
+  runScheduledReconciliation,
 } from "./strava/imports";
 import { createStravaRouter } from "./strava/router";
 import {
@@ -93,17 +94,30 @@ export default {
   ) {
     ctx.waitUntil(
       (async () => {
-        await runScheduledTask(
+        // Strava's rate limits are shared by every task that calls its API, so
+        // a rate-limited task pauses the remaining Strava work in this run.
+        let stravaPauseUntil: number | null = null;
+        const runStravaTask = async (
+          name: string,
+          task: () => Promise<number | null>,
+        ) => {
+          if (stravaPauseUntil !== null && Date.now() < stravaPauseUntil)
+            return;
+          const pauseUntil = await runScheduledTask(name, task);
+          if (pauseUntil) stravaPauseUntil = pauseUntil;
+        };
+        await runStravaTask(
           "historic Strava import",
           runScheduledHistoricImport,
         );
-        await runScheduledTask(
-          "initial Strava import",
-          runScheduledInitialImport,
-        );
-        await runScheduledTask(
+        await runStravaTask("initial Strava import", runScheduledInitialImport);
+        await runStravaTask(
           "Strava webhook retries",
           runScheduledWebhookRetries,
+        );
+        await runStravaTask(
+          "Strava reconciliation",
+          runScheduledReconciliation,
         );
         await runScheduledTask(
           "expired sign rate-limit windows",
