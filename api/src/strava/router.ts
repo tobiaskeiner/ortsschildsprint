@@ -1,7 +1,10 @@
 import { getCookie, setCookie } from "hono/cookie";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
+import { zValidator } from "@hono/zod-validator";
+import * as z from "zod";
 import { assertStravaConfiguration, bindings } from "../config";
+import { canRequestStrava, getClientAddress } from "../rate-limit";
 import { supabase } from "../supabase";
 import {
   createOAuthState,
@@ -23,19 +26,24 @@ import {
   SESSION_COOKIE,
   SESSION_TTL_SECONDS,
 } from "./sessions";
-import type { OAuthTokenResponse } from "./types";
+import { oAuthTokenResponseSchema } from "./types";
 import {
   processStravaWebhookEvent,
   recordStravaWebhookEvent,
 } from "./webhook-events";
-import { isStravaWebhookEvent, verifyWebhookSignature } from "./webhook";
+import { parseStravaWebhookEvent, verifyWebhookSignature } from "./webhook";
 
 const dashboardPath = "/strava";
+const webhookPath = "/strava/webhook";
 const OAUTH_STATE_COOKIE = "oss_strava_oauth_state";
 const OAUTH_STATE_TTL_SECONDS = 10 * 60;
 const ACTIVITY_SUMMARY_COOKIE = "oss_strava_activity_summary";
 const STRAVA_JSON_REQUEST_BODY_MAX_BYTES = 4 * 1024;
 const STRAVA_WEBHOOK_BODY_MAX_BYTES = 64 * 1024;
+
+const activitySummaryPreferenceSchema = z.object({
+  appendSignSummary: z.boolean(),
+});
 
 const cookieOptions = (requestUrl: string, maxAge: number) => ({
   httpOnly: true,
@@ -53,6 +61,17 @@ const getAuthenticatedAthleteId = async (sessionId: string | undefined) => {
 
 export const createStravaRouter = () => {
   const app = new Hono();
+
+  app.use(async (c, next) => {
+    // Webhook deliveries arrive from shared Strava infrastructure and are
+    // authenticated by their HMAC signature instead of a rate-limit key, so
+    // they must not be throttled (Strava retries events only three times).
+    if (c.req.path === webhookPath) return next();
+    if (!(await canRequestStrava(getClientAddress(c.req.raw)))) {
+      return c.json({ error: "Too many Strava requests" }, 429);
+    }
+    await next();
+  });
 
   app.get("/connect", async (c) => {
     assertStravaConfiguration();
@@ -92,16 +111,7 @@ export const createStravaRouter = () => {
     const appendSignSummary = getCookie(c, ACTIVITY_SUMMARY_COOKIE) !== "false";
     setCookie(c, OAUTH_STATE_COOKIE, "", cookieOptions(c.req.url, 0));
     setCookie(c, ACTIVITY_SUMMARY_COOKIE, "", cookieOptions(c.req.url, 0));
-    const grantedScopes = (c.req.query("scope") ?? "")
-      .split(/[\s,]+/)
-      .filter(Boolean);
-    if (
-      !code ||
-      !stateNonce ||
-      stateNonce !== cookieNonce ||
-      !grantedScopes.includes("activity:read_all") ||
-      (appendSignSummary && !grantedScopes.includes("activity:write"))
-    ) {
+    if (!code || !stateNonce || stateNonce !== cookieNonce) {
       return c.redirect(`${dashboardPath}?connection=denied`);
     }
 
@@ -117,8 +127,23 @@ export const createStravaRouter = () => {
     });
     if (!response.ok) return c.redirect(`${dashboardPath}?connection=failed`);
 
-    const result = (await response.json()) as OAuthTokenResponse;
-    const athleteId = result.athlete.id;
+    const result = oAuthTokenResponseSchema.safeParse(await response.json());
+    if (!result.success) {
+      return c.redirect(`${dashboardPath}?connection=failed`);
+    }
+    const token = result.data;
+    // The token response reports the scopes Strava actually granted. The
+    // scope query parameter on the callback is client-controlled and must not
+    // be trusted for storage.
+    const grantedScopes = (token.scope ?? "").split(/[\s,]+/).filter(Boolean);
+    if (
+      !grantedScopes.includes("activity:read_all") ||
+      (appendSignSummary && !grantedScopes.includes("activity:write"))
+    ) {
+      return c.redirect(`${dashboardPath}?connection=denied`);
+    }
+
+    const athleteId = token.athlete.id;
     const { data: existingAthlete, error: existingAthleteError } =
       await supabase
         .from("strava_athletes")
@@ -130,15 +155,13 @@ export const createStravaRouter = () => {
     const { error } = await supabase.from("strava_athletes").upsert({
       athlete_id: athleteId,
       display_name:
-        [result.athlete.firstname, result.athlete.lastname]
+        [token.athlete.firstname, token.athlete.lastname]
           .filter(Boolean)
           .join(" ") || `Strava athlete ${athleteId}`,
-      profile_image_url: result.athlete.profile ?? null,
-      access_token_ciphertext: await encryptToken(result.access_token),
-      refresh_token_ciphertext: await encryptToken(result.refresh_token),
-      access_token_expires_at: new Date(
-        result.expires_at * 1_000,
-      ).toISOString(),
+      profile_image_url: token.athlete.profile ?? null,
+      access_token_ciphertext: await encryptToken(token.access_token),
+      refresh_token_ciphertext: await encryptToken(token.refresh_token),
+      access_token_expires_at: new Date(token.expires_at * 1_000).toISOString(),
       granted_scopes: grantedScopes,
       append_sign_summary: appendSignSummary,
       updated_at: new Date().toISOString(),
@@ -190,18 +213,18 @@ export const createStravaRouter = () => {
       maxSize: STRAVA_JSON_REQUEST_BODY_MAX_BYTES,
       onError: (c) => c.json({ error: "Request body is too large" }, 413),
     }),
+    zValidator("json", activitySummaryPreferenceSchema, (result, c) => {
+      if (!result.success) {
+        return c.json({ error: "A valid preference is required" }, 400);
+      }
+    }),
     async (c) => {
       const athleteId = await getAuthenticatedAthleteId(
         getCookie(c, SESSION_COOKIE),
       );
       if (!athleteId) return c.json({ error: "Not connected" }, 401);
 
-      const body = (await c.req.json().catch(() => undefined)) as
-        { appendSignSummary?: unknown } | undefined;
-      if (typeof body?.appendSignSummary !== "boolean") {
-        return c.json({ error: "A valid preference is required" }, 400);
-      }
-
+      const { appendSignSummary } = c.req.valid("json");
       const { data: athlete, error: athleteError } = await supabase
         .from("strava_athletes")
         .select("granted_scopes")
@@ -209,7 +232,7 @@ export const createStravaRouter = () => {
         .single();
       if (athleteError) throw new Error(athleteError.message);
       const grantedScopes = (athlete.granted_scopes ?? []) as string[];
-      if (body.appendSignSummary && !grantedScopes.includes("activity:write")) {
+      if (appendSignSummary && !grantedScopes.includes("activity:write")) {
         return c.json(
           {
             error:
@@ -222,12 +245,12 @@ export const createStravaRouter = () => {
       const { error } = await supabase
         .from("strava_athletes")
         .update({
-          append_sign_summary: body.appendSignSummary,
+          append_sign_summary: appendSignSummary,
           updated_at: new Date().toISOString(),
         })
         .eq("athlete_id", athleteId);
       if (error) throw new Error(error.message);
-      return c.json({ appendSignSummary: body.appendSignSummary });
+      return c.json({ appendSignSummary });
     },
   );
 
@@ -292,10 +315,11 @@ export const createStravaRouter = () => {
       } catch {
         return c.json({ error: "Invalid event" }, 400);
       }
-      if (!isStravaWebhookEvent(payload)) {
+      const event = parseStravaWebhookEvent(payload);
+      if (!event) {
         return c.json({ error: "Invalid event" }, 400);
       }
-      const eventId = await recordStravaWebhookEvent(payload);
+      const eventId = await recordStravaWebhookEvent(event);
       c.executionCtx.waitUntil(
         processStravaWebhookEvent(eventId).catch((error) =>
           console.error("Could not start Strava webhook processing", error),

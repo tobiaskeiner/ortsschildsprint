@@ -7,6 +7,11 @@ Public sign lookups are rate-limited to 60 requests per minute per Cloudflare
 client address, and must use a bounded geographic area. This protects the
 spatial database from broad, expensive queries.
 
+Strava endpoints are rate-limited to 120 requests per minute per Cloudflare
+client address, except the webhook: Strava delivers webhook events from shared
+infrastructure and retries them only three times, so those requests are
+authenticated by their HMAC signature instead of a rate-limit key.
+
 ## Commands
 
 Run these from the repository root:
@@ -38,6 +43,10 @@ cd api
 supabase link --project-ref your-project-ref
 supabase db push
 ```
+
+Never edit a migration that has already been applied to a database: the CLI
+records the version, not the content, so changes will never reach that
+database. Put schema changes in a new migration file instead.
 
 ## Local configuration
 

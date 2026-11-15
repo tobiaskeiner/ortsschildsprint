@@ -30,3 +30,11 @@ export const getSessionAthleteId = async (sessionId: string | undefined) => {
   }
   return data.athlete_id as number;
 };
+
+export const pruneExpiredSessions = async () => {
+  const { error } = await supabase
+    .from("strava_sessions")
+    .delete()
+    .lte("expires_at", new Date().toISOString());
+  if (error) throw new Error(error.message);
+};

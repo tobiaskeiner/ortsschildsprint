@@ -4,6 +4,7 @@ import { withStravaImportLock } from "./imports";
 import type { StravaWebhookEvent } from "./types";
 
 const RETRY_EVENTS_PER_SCHEDULE = 3;
+const PROCESSED_EVENT_RETENTION_MILLISECONDS = 30 * 24 * 60 * 60 * 1_000;
 const encoder = new TextEncoder();
 
 interface StoredWebhookEvent {
@@ -33,15 +34,7 @@ const stableJson = (value: unknown): string => {
     .join(",")}}`;
 };
 
-const getEventFingerprint = async (
-  event: Required<
-    Pick<
-      StravaWebhookEvent,
-      "aspect_type" | "event_time" | "object_id" | "object_type" | "owner_id"
-    >
-  > &
-    StravaWebhookEvent,
-) => {
+const getEventFingerprint = async (event: StravaWebhookEvent) => {
   const payload = stableJson({
     aspect_type: event.aspect_type,
     event_time: event.event_time,
@@ -119,11 +112,20 @@ const processActivityWebhookEvent = async (event: StoredWebhookEvent) => {
     activityWasMadeShareable ||
     activityEligibilityMayHaveChanged
   ) {
-    await processActivity(event.owner_id, event.object_id, {
-      retryWhenStreamUnavailable: true,
-      updateDescription: event.aspect_type === "create",
-    });
-    await invalidateTotalRideCount(event.owner_id);
+    const countsTowardRideTotal = await processActivity(
+      event.owner_id,
+      event.object_id,
+      {
+        retryWhenStreamUnavailable: true,
+        updateDescription: event.aspect_type === "create",
+      },
+    );
+    // Only activities that count toward the ride total can change it, so runs,
+    // walks, and trainer rides no longer invalidate the cached total (whose
+    // refresh pages through the athlete's entire Strava history).
+    if (countsTowardRideTotal) {
+      await invalidateTotalRideCount(event.owner_id);
+    }
   }
 };
 
@@ -167,15 +169,7 @@ export const processStravaWebhookEvent = async (eventId: number) => {
   }
 };
 
-export const recordStravaWebhookEvent = async (
-  event: Required<
-    Pick<
-      StravaWebhookEvent,
-      "aspect_type" | "event_time" | "object_id" | "object_type" | "owner_id"
-    >
-  > &
-    StravaWebhookEvent,
-) => {
+export const recordStravaWebhookEvent = async (event: StravaWebhookEvent) => {
   const eventValues = {
     event_fingerprint: await getEventFingerprint(event),
     object_type: event.object_type,
@@ -221,4 +215,18 @@ export const runScheduledWebhookRetries = async () => {
   for (const event of data ?? []) {
     await processStravaWebhookEvent(event.id as number);
   }
+};
+
+export const pruneProcessedWebhookEvents = async () => {
+  const { error } = await supabase
+    .from("strava_webhook_events")
+    .delete()
+    .not("processed_at", "is", null)
+    .lt(
+      "processed_at",
+      new Date(
+        Date.now() - PROCESSED_EVENT_RETENTION_MILLISECONDS,
+      ).toISOString(),
+    );
+  if (error) throw new Error(error.message);
 };

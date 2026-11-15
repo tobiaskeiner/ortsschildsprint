@@ -56,15 +56,15 @@ export const verifyOAuthState = async (state: string | undefined) => {
   const [payload, signature] = state.split(".");
   if (!payload || !signature) return undefined;
 
-  const valid = await crypto.subtle.verify(
-    "HMAC",
-    await importStateSigningKey(),
-    base64UrlDecode(signature),
-    encoder.encode(payload),
-  );
-  if (!valid) return undefined;
-
   try {
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      await importStateSigningKey(),
+      base64UrlDecode(signature),
+      encoder.encode(payload),
+    );
+    if (!valid) return undefined;
+
     const value: unknown = JSON.parse(
       new TextDecoder().decode(base64UrlDecode(payload)),
     );
@@ -80,6 +80,8 @@ export const verifyOAuthState = async (state: string | undefined) => {
     if (!validState) return undefined;
     return value.nonce;
   } catch {
+    // A malformed state must simply fail verification, never surface as a
+    // server error (for example an invalid base64 signature segment).
     return undefined;
   }
 };

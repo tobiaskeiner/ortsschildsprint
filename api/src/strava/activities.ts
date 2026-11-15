@@ -197,11 +197,18 @@ const markActivityDescriptionUpdated = async (activityId: number) => {
   if (error) throw new Error(error.message);
 };
 
+/**
+ * Processes one activity and reports whether it counts toward the athlete's
+ * total of eligible outdoor rides: true for eligible outdoor rides and for
+ * previously processed activities whose eligibility may have just changed.
+ * Callers use this to invalidate the cached ride total only when it can
+ * actually have changed.
+ */
 export const processActivity = async (
   athleteId: number,
   activityId: number,
   options: ProcessActivityOptions = {},
-) => {
+): Promise<boolean> => {
   const {
     activitySummary,
     retryWhenStreamUnavailable = false,
@@ -222,11 +229,11 @@ export const processActivity = async (
     ).json()) as Activity);
   if (activity.private) {
     await removeActivityCollection(athleteId, activityId);
-    return;
+    return Boolean(existingActivity);
   }
   if (!isOutdoorRide(activity)) {
     await removeActivityCollection(athleteId, activityId);
-    return;
+    return Boolean(existingActivity);
   }
   if (
     existingActivity &&
@@ -234,7 +241,7 @@ export const processActivity = async (
       existingActivity.new_sign_count === 0 ||
       existingActivity.description_updated)
   ) {
-    return;
+    return true;
   }
   if (existingActivity) {
     await updateActivityDescription(
@@ -244,7 +251,7 @@ export const processActivity = async (
       existingActivity.new_sign_count,
     );
     await markActivityDescriptionUpdated(activityId);
-    return;
+    return true;
   }
 
   const streams = (await (
@@ -258,7 +265,7 @@ export const processActivity = async (
       throw new StravaActivityNotReadyError();
     }
     await completeActivity(athleteId, activityId, activity, []);
-    return;
+    return true;
   }
 
   const matchedOsmIds = await getMatchedOsmIds(streams.latlng.data);
@@ -281,4 +288,5 @@ export const processActivity = async (
     );
     await markActivityDescriptionUpdated(activityId);
   }
+  return true;
 };

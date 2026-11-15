@@ -1,5 +1,5 @@
 import { bindings } from "../config";
-import type { StravaWebhookEvent } from "./types";
+import { stravaWebhookEventSchema } from "./types";
 
 const encoder = new TextEncoder();
 const MAX_WEBHOOK_AGE_SECONDS = 5 * 60;
@@ -58,25 +58,11 @@ export const verifyWebhookSignature = async (
   );
 };
 
-const isSafeInteger = (value: unknown): value is number =>
-  typeof value === "number" && Number.isSafeInteger(value);
-
-export const isStravaWebhookEvent = (
-  value: unknown,
-): value is Required<
-  Pick<
-    StravaWebhookEvent,
-    "aspect_type" | "event_time" | "object_id" | "object_type" | "owner_id"
-  >
-> &
-  StravaWebhookEvent => {
-  if (typeof value !== "object" || value === null) return false;
-  const event = value as StravaWebhookEvent;
-  return (
-    typeof event.object_type === "string" &&
-    typeof event.aspect_type === "string" &&
-    isSafeInteger(event.object_id) &&
-    isSafeInteger(event.owner_id) &&
-    isSafeInteger(event.event_time)
-  );
+/**
+ * Parses a Strava webhook delivery into a typed event, or undefined when the
+ * payload does not match Strava's documented webhook contract.
+ */
+export const parseStravaWebhookEvent = (value: unknown) => {
+  const result = stravaWebhookEventSchema.safeParse(value);
+  return result.success ? result.data : undefined;
 };

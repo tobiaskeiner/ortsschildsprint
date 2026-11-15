@@ -1,7 +1,7 @@
 import { bindings } from "../config";
 import { supabase } from "../supabase";
 import { decryptToken, encryptToken } from "./crypto";
-import type { StravaTokenResponse } from "./types";
+import { stravaTokenResponseSchema } from "./types";
 
 export const stravaApi = async (
   accessToken: string,
@@ -49,18 +49,23 @@ export const getAccessToken = async (athleteId: number) => {
   });
   if (!response.ok) throw new Error("Could not refresh Strava access token");
 
-  const refreshed = (await response.json()) as StravaTokenResponse;
-  const { error: updateError } = await supabase
+  const refreshed = stravaTokenResponseSchema.safeParse(await response.json());
+  if (!refreshed.success) {
+    throw new Error("Received an invalid Strava token response");
+  }
+  const { error: updateTokenError } = await supabase
     .from("strava_athletes")
     .update({
-      access_token_ciphertext: await encryptToken(refreshed.access_token),
-      refresh_token_ciphertext: await encryptToken(refreshed.refresh_token),
+      access_token_ciphertext: await encryptToken(refreshed.data.access_token),
+      refresh_token_ciphertext: await encryptToken(
+        refreshed.data.refresh_token,
+      ),
       access_token_expires_at: new Date(
-        refreshed.expires_at * 1_000,
+        refreshed.data.expires_at * 1_000,
       ).toISOString(),
       updated_at: new Date().toISOString(),
     })
     .eq("athlete_id", athleteId);
-  if (updateError) throw new Error(updateError.message);
-  return refreshed.access_token;
+  if (updateTokenError) throw new Error(updateTokenError.message);
+  return refreshed.data.access_token;
 };

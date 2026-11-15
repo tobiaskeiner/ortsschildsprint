@@ -13,7 +13,11 @@ import {
   runScheduledInitialImport,
 } from "./strava/imports";
 import { createStravaRouter } from "./strava/router";
-import { runScheduledWebhookRetries } from "./strava/webhook-events";
+import {
+  pruneProcessedWebhookEvents,
+  runScheduledWebhookRetries,
+} from "./strava/webhook-events";
+import { pruneExpiredSessions } from "./strava/sessions";
 import { supabase } from "./supabase";
 
 const app = new Hono();
@@ -104,6 +108,11 @@ export default {
         await runScheduledTask(
           "expired sign rate-limit windows",
           pruneExpiredSignsRateLimitWindows,
+        );
+        await runScheduledTask("expired Strava sessions", pruneExpiredSessions);
+        await runScheduledTask(
+          "processed Strava webhook events",
+          pruneProcessedWebhookEvents,
         );
       })(),
     );
