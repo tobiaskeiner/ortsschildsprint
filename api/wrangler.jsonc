@@ -24,4 +24,8 @@
       "head_sampling_rate": 1,
     },
   },
+  "vars": {
+    "STRAVA_CLIENT_ID": "294829",
+    "STRAVA_REDIRECT_URI": "https://ortsschildsprint.com/api/strava/callback",
+  },
 }
