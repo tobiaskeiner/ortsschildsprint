@@ -8,9 +8,12 @@ client address, and must use a bounded geographic area. This protects the
 spatial database from broad, expensive queries.
 
 Strava endpoints are rate-limited to 120 requests per minute per Cloudflare
-client address, except the webhook: Strava delivers webhook events from shared
-infrastructure and retries them only three times, so those requests are
-authenticated by their HMAC signature instead of a rate-limit key.
+client address. The webhook instead gets a generous dedicated limit of 300
+requests per minute: Strava delivers webhook events from shared infrastructure
+and retries them only three times, so real deliveries must not be throttled,
+but the deliveries themselves are unauthenticated (Strava does not sign them)
+and destructive events are re-verified against the Strava API before any data
+is removed.
 
 ## Commands
 

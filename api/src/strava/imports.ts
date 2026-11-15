@@ -10,6 +10,13 @@ import type { ActivitySummary } from "./types";
 
 const HISTORIC_RIDES_PER_BATCH = 15;
 const INITIAL_RIDES_PER_IMPORT = 20;
+// One batch per pending athlete per schedule keeps every athlete's import
+// progressing instead of serializing all athletes behind the oldest request.
+// The per-athlete Strava usage stays far below Strava's rate limits.
+const MAX_ATHLETES_PER_SCHEDULE = 25;
+// Keeps one scheduled invocation comfortably inside Worker execution limits
+// even when individual batches are slow; the next schedule continues the work.
+const SCHEDULED_IMPORT_BUDGET_MILLISECONDS = 2 * 60 * 1_000;
 const totalRideCountRefreshes = new Map<number, Promise<void>>();
 
 export class StravaImportInProgressError extends Error {
@@ -243,43 +250,65 @@ const deferFailedScheduledImport = async (athleteId: number) => {
   }
 };
 
-export const runScheduledHistoricImport = async () => {
-  const { data: state, error } = await supabase
+/**
+ * Processes one import batch for every pending athlete per schedule, so a
+ * backlog for one athlete cannot starve the others. The database lock still
+ * bounds each athlete to one batch at a time, and the athlete cap and time
+ * budget keep a single scheduled invocation inside Worker limits.
+ */
+const runScheduledImportBatches = async (
+  getPendingAthleteIds: () => Promise<number[]>,
+  importBatch: (athleteId: number) => Promise<unknown>,
+) => {
+  const pendingAthleteIds = await getPendingAthleteIds();
+  const deadline = Date.now() + SCHEDULED_IMPORT_BUDGET_MILLISECONDS;
+  for (const [index, athleteId] of pendingAthleteIds.entries()) {
+    if (index >= MAX_ATHLETES_PER_SCHEDULE || Date.now() >= deadline) return;
+    try {
+      await importBatch(athleteId);
+    } catch (error) {
+      if (error instanceof StravaImportInProgressError) continue;
+      await deferFailedScheduledImport(athleteId);
+      console.error(
+        `Scheduled Strava import failed for athlete ${athleteId}`,
+        error,
+      );
+    }
+  }
+};
+
+const getPendingHistoricAthleteIds = async () => {
+  const { data, error } = await supabase
     .from("strava_import_state")
     .select("athlete_id")
     .eq("completed", false)
     .eq("full_history_requested", true)
     .order("updated_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .limit(MAX_ATHLETES_PER_SCHEDULE);
   if (error) throw new Error(error.message);
-  if (!state) return false;
-  try {
-    await importHistoricBatchExclusively(state.athlete_id);
-  } catch (error) {
-    if (error instanceof StravaImportInProgressError) return;
-    await deferFailedScheduledImport(state.athlete_id);
-    throw error;
-  }
-  return true;
+  return (data ?? []).map((state) => state.athlete_id as number);
 };
 
-export const runScheduledInitialImport = async () => {
-  const { data: state, error } = await supabase
+const getPendingInitialAthleteIds = async () => {
+  const { data, error } = await supabase
     .from("strava_import_state")
     .select("athlete_id")
     .eq("initial_import_complete", false)
     .eq("full_history_requested", false)
     .order("updated_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .limit(MAX_ATHLETES_PER_SCHEDULE);
   if (error) throw new Error(error.message);
-  if (!state) return;
-  try {
-    await importInitialRidesExclusively(state.athlete_id);
-  } catch (error) {
-    if (error instanceof StravaImportInProgressError) return;
-    await deferFailedScheduledImport(state.athlete_id);
-    throw error;
-  }
+  return (data ?? []).map((state) => state.athlete_id as number);
 };
+
+export const runScheduledHistoricImport = () =>
+  runScheduledImportBatches(
+    getPendingHistoricAthleteIds,
+    importHistoricBatchExclusively,
+  );
+
+export const runScheduledInitialImport = () =>
+  runScheduledImportBatches(
+    getPendingInitialAthleteIds,
+    importInitialRidesExclusively,
+  );

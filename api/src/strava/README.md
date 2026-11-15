@@ -26,7 +26,6 @@ STRAVA_REDIRECT_URI=...
 STRAVA_STATE_SECRET=...
 STRAVA_TOKEN_ENCRYPTION_KEY=...
 STRAVA_WEBHOOK_VERIFY_TOKEN=...
-STRAVA_WEBHOOK_SIGNING_SECRET=...
 ```
 
 For local development, put these in `api/.env`. In production, store them as
@@ -39,16 +38,18 @@ pnpm --dir api exec wrangler secret put STRAVA_REDIRECT_URI
 pnpm --dir api exec wrangler secret put STRAVA_STATE_SECRET
 pnpm --dir api exec wrangler secret put STRAVA_TOKEN_ENCRYPTION_KEY
 pnpm --dir api exec wrangler secret put STRAVA_WEBHOOK_VERIFY_TOKEN
-pnpm --dir api exec wrangler secret put STRAVA_WEBHOOK_SIGNING_SECRET
 ```
 
 Generate the encryption key with `openssl rand -base64 32`. Keep it stable:
 changing it makes previously encrypted Strava tokens unreadable and athletes
 must reconnect.
 
-`STRAVA_WEBHOOK_SIGNING_SECRET` is the signing secret for your Strava webhook,
-not the subscription validation token. It is used to validate the
-`X-Strava-Signature` HMAC on every incoming webhook POST.
+`STRAVA_WEBHOOK_SIGNING_SECRET` is optional. Strava does not currently sign
+webhook deliveries and does not issue a signing secret, so deliveries without
+an `X-Strava-Signature` header are accepted and treated as untrusted triggers.
+Set this secret only when deliveries pass through a proxy that signs them (or
+once Strava ships per-event signatures): any delivery that presents the header
+must then validate against it, while unsigned deliveries keep working.
 
 ## Strava application settings
 
@@ -71,19 +72,22 @@ https://ortsschildsprint.com/api/strava/webhook
 ```
 
 Use the same value for the subscription verify token and
-`STRAVA_WEBHOOK_VERIFY_TOKEN`. Webhook POSTs are accepted only when their
-`X-Strava-Signature` HMAC and timestamp validate against
-`STRAVA_WEBHOOK_SIGNING_SECRET`.
+`STRAVA_WEBHOOK_VERIFY_TOKEN`. Webhook deliveries carry no per-event
+authentication (Strava does not sign them), so every delivery is treated as an
+untrusted trigger: activity data is always fetched from the Strava API with
+the athlete's stored token, and destructive events — activity deletion,
+privatization, and deauthorization — are only honored once Strava's API
+confirms them.
 
 ## Import behavior
 
 - A first connection analyses the latest 20 eligible outdoor rides in the
   background. It never changes historic activity descriptions. If that work is
-  interrupted, the deployed hourly scheduler resumes it.
+  interrupted, the deployed scheduler resumes it every five minutes.
 - Dashboard imports process up to 15 eligible outdoor rides per batch. A
-  deployed Worker continues one requested import batch every hour. Only one
-  batch for an athlete can run at a time; another request receives a `409` and
-  can be retried shortly.
+  deployed Worker continues one import batch per pending athlete every five
+  minutes, up to 25 athletes per run. Only one batch for an athlete can run at
+  a time; another request receives a `409` and can be retried shortly.
 - A historic batch uses one activity-listing request, then one route-stream
   request for each previously unprocessed ride. The listing already supplies
   the metadata needed to filter historic rides, and one access token is reused
@@ -102,8 +106,10 @@ Use the same value for the subscription verify token and
   handcycle, and velomobile activities. Trainer, manual, and virtual rides are
   excluded, as are activities marked private in Strava.
 - When Strava reports that an activity was deleted or made private, its
-  activity-derived collection data is removed. If it becomes shareable again,
-  Ortschildsprint analyses it without changing its description.
+  activity-derived collection data is removed — but only after Strava's API
+  confirms the report, since webhook deliveries are unauthenticated. If an
+  activity becomes shareable again, Ortschildsprint analyses it without
+  changing its description.
 
 ## Local testing
 

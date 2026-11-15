@@ -4,7 +4,11 @@ import { bodyLimit } from "hono/body-limit";
 import { zValidator } from "@hono/zod-validator";
 import * as z from "zod";
 import { assertStravaConfiguration, bindings } from "../config";
-import { canRequestStrava, getClientAddress } from "../rate-limit";
+import {
+  canRequestStrava,
+  canRequestStravaWebhook,
+  getClientAddress,
+} from "../rate-limit";
 import { supabase } from "../supabase";
 import {
   createOAuthState,
@@ -63,10 +67,17 @@ export const createStravaRouter = () => {
   const app = new Hono();
 
   app.use(async (c, next) => {
-    // Webhook deliveries arrive from shared Strava infrastructure and are
-    // authenticated by their HMAC signature instead of a rate-limit key, so
-    // they must not be throttled (Strava retries events only three times).
-    if (c.req.path === webhookPath) return next();
+    // Webhook deliveries arrive from shared Strava infrastructure and are not
+    // authenticated per event (Strava does not sign them), so they skip the
+    // per-IP Strava limit and get a generous dedicated one instead. Strava
+    // retries events only three times, so real deliveries must not be
+    // throttled under normal conditions.
+    if (c.req.path === webhookPath) {
+      if (!(await canRequestStravaWebhook(getClientAddress(c.req.raw)))) {
+        return c.json({ error: "Too many webhook requests" }, 429);
+      }
+      return next();
+    }
     if (!(await canRequestStrava(getClientAddress(c.req.raw)))) {
       return c.json({ error: "Too many Strava requests" }, 429);
     }
@@ -301,6 +312,9 @@ export const createStravaRouter = () => {
     }),
     async (c) => {
       const rawBody = await c.req.text();
+      // Deliveries are accepted without a signature (Strava does not sign
+      // them); a presented signature must still validate. Destructive events
+      // are re-verified against the Strava API before any data is removed.
       const signatureIsValid = await verifyWebhookSignature(
         c.req.header("X-Strava-Signature"),
         rawBody,

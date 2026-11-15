@@ -5,7 +5,9 @@
   "workers_dev": false,
   "compatibility_date": "2026-04-23",
   "triggers": {
-    "crons": ["0 * * * *"],
+    // Every 5 minutes so import batches and webhook retries progress
+    // continuously instead of draining one batch per hour.
+    "crons": ["*/5 * * * *"],
   },
   "observability": {
     "enabled": false,

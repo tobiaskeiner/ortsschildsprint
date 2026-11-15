@@ -27,10 +27,21 @@ const getSignatureParts = (header: string | undefined) => {
   return { timestamp, signature };
 };
 
+/**
+ * Strava does not currently sign webhook deliveries (its documented
+ * X-Strava-Signature scheme is unsupported and no signing secret is issued),
+ * so deliveries without a signature header are accepted and treated as
+ * untrusted triggers: destructive events are re-verified against the Strava
+ * API before any data is removed. A delivery that DOES present a signature
+ * must validate against the configured signing secret — this rejects forged
+ * events that imitate one and keeps the endpoint ready for signed deliveries
+ * or a signing proxy.
+ */
 export const verifyWebhookSignature = async (
   signatureHeader: string | undefined,
   rawBody: string,
 ) => {
+  if (!signatureHeader) return true;
   if (!bindings.STRAVA_WEBHOOK_SIGNING_SECRET) return false;
   const signatureParts = getSignatureParts(signatureHeader);
   if (!signatureParts) return false;

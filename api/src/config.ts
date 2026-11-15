@@ -21,7 +21,6 @@ export const assertStravaConfiguration = () => {
     bindings.STRAVA_STATE_SECRET,
     bindings.STRAVA_TOKEN_ENCRYPTION_KEY,
     bindings.STRAVA_WEBHOOK_VERIFY_TOKEN,
-    bindings.STRAVA_WEBHOOK_SIGNING_SECRET,
   ]) {
     if (!value) throw new Error("Strava integration is not configured");
   }

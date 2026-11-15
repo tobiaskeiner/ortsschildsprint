@@ -4,7 +4,9 @@ const encoder = new TextEncoder();
 
 export class StravaReconnectRequiredError extends Error {
   constructor() {
-    super("The stored Strava authorization cannot be read. Reconnect Strava.");
+    super(
+      "The stored Strava authorization is no longer valid. Reconnect Strava.",
+    );
   }
 }
 

@@ -3,6 +3,10 @@ import { bindings } from "./config";
 
 const SIGNS_REQUESTS_PER_MINUTE = 60;
 const STRAVA_REQUESTS_PER_MINUTE = 120;
+// Webhook deliveries are unauthenticated (Strava does not sign them), so they
+// get a dedicated, generous limit: high enough for bursts from Strava's shared
+// sending infrastructure, low enough to blunt floods of forged deliveries.
+const STRAVA_WEBHOOK_REQUESTS_PER_MINUTE = 300;
 const RATE_LIMIT_RETENTION_MILLISECONDS = 24 * 60 * 60 * 1_000;
 const encoder = new TextEncoder();
 
@@ -59,6 +63,13 @@ export const canRequestSigns = (clientAddress: string) =>
 
 export const canRequestStrava = (clientAddress: string) =>
   consumeRateLimit("strava", clientAddress, STRAVA_REQUESTS_PER_MINUTE);
+
+export const canRequestStravaWebhook = (clientAddress: string) =>
+  consumeRateLimit(
+    "strava-webhook",
+    clientAddress,
+    STRAVA_WEBHOOK_REQUESTS_PER_MINUTE,
+  );
 
 export const pruneExpiredSignsRateLimitWindows = async () => {
   const { error } = await supabase

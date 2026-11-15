@@ -1,5 +1,10 @@
 import { supabase } from "../supabase";
-import { processActivity, removeActivityCollection } from "./activities";
+import {
+  isActivityUnavailable,
+  processActivity,
+  removeActivityCollection,
+} from "./activities";
+import { isAthleteAuthorized, StravaAthleteNotConnectedError } from "./client";
 import { withStravaImportLock } from "./imports";
 import type { StravaWebhookEvent } from "./types";
 
@@ -93,6 +98,9 @@ const processActivityWebhookEvent = async (event: StoredWebhookEvent) => {
   const activityWasMadePrivate =
     event.aspect_type === "update" && updateEquals(event.updates.private, true);
   if (event.aspect_type === "delete" || activityWasMadePrivate) {
+    // Deliveries are unauthenticated, so a destructive event is only honored
+    // once Strava's API confirms the activity is really unavailable.
+    if (!(await isActivityUnavailable(event.owner_id, event.object_id))) return;
     await removeActivityCollection(event.owner_id, event.object_id);
     await invalidateTotalRideCount(event.owner_id);
     return;
@@ -112,19 +120,26 @@ const processActivityWebhookEvent = async (event: StoredWebhookEvent) => {
     activityWasMadeShareable ||
     activityEligibilityMayHaveChanged
   ) {
-    const countsTowardRideTotal = await processActivity(
-      event.owner_id,
-      event.object_id,
-      {
-        retryWhenStreamUnavailable: true,
-        updateDescription: event.aspect_type === "create",
-      },
-    );
-    // Only activities that count toward the ride total can change it, so runs,
-    // walks, and trainer rides no longer invalidate the cached total (whose
-    // refresh pages through the athlete's entire Strava history).
-    if (countsTowardRideTotal) {
-      await invalidateTotalRideCount(event.owner_id);
+    try {
+      const countsTowardRideTotal = await processActivity(
+        event.owner_id,
+        event.object_id,
+        {
+          retryWhenStreamUnavailable: true,
+          updateDescription: event.aspect_type === "create",
+        },
+      );
+      // Only activities that count toward the ride total can change it, so runs,
+      // walks, and trainer rides no longer invalidate the cached total (whose
+      // refresh pages through the athlete's entire Strava history).
+      if (countsTowardRideTotal) {
+        await invalidateTotalRideCount(event.owner_id);
+      }
+    } catch (error) {
+      // A deauthorization can remove the athlete while earlier activity events
+      // are still queued; there is nothing left to process for them.
+      if (error instanceof StravaAthleteNotConnectedError) return;
+      throw error;
     }
   }
 };
@@ -135,6 +150,9 @@ const processClaimedWebhookEvent = async (event: StoredWebhookEvent) => {
     event.aspect_type === "update" &&
     updateEquals(event.updates.authorized, false)
   ) {
+    // Deliveries are unauthenticated, so the athlete's data is only removed
+    // once Strava's API confirms the authorization is really gone.
+    if (await isAthleteAuthorized(event.owner_id)) return;
     const { error } = await supabase
       .from("strava_athletes")
       .delete()

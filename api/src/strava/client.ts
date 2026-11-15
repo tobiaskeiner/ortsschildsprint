@@ -1,7 +1,26 @@
 import { bindings } from "../config";
 import { supabase } from "../supabase";
-import { decryptToken, encryptToken } from "./crypto";
+import {
+  decryptToken,
+  encryptToken,
+  StravaReconnectRequiredError,
+} from "./crypto";
 import { stravaTokenResponseSchema } from "./types";
+
+export class StravaApiError extends Error {
+  constructor(
+    readonly status: number,
+    statusText: string,
+  ) {
+    super(`Strava API request failed: ${status} ${statusText}`);
+  }
+}
+
+export class StravaAthleteNotConnectedError extends Error {
+  constructor() {
+    super("Strava athlete is not connected");
+  }
+}
 
 export const stravaApi = async (
   accessToken: string,
@@ -13,26 +32,28 @@ export const stravaApi = async (
     headers: { authorization: `Bearer ${accessToken}`, ...init?.headers },
   });
   if (!response.ok) {
-    throw new Error(
-      `Strava API request failed: ${response.status} ${response.statusText}`,
-    );
+    throw new StravaApiError(response.status, response.statusText);
   }
   return response;
 };
 
-export const getAccessToken = async (athleteId: number) => {
+export const getAccessToken = async (
+  athleteId: number,
+  { forceRefresh = false }: { forceRefresh?: boolean } = {},
+) => {
   const { data: athlete, error } = await supabase
     .from("strava_athletes")
     .select(
       "access_token_ciphertext, refresh_token_ciphertext, access_token_expires_at",
     )
     .eq("athlete_id", athleteId)
-    .single();
-  if (error || !athlete) throw new Error("Strava athlete is not connected");
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!athlete) throw new StravaAthleteNotConnectedError();
 
   if (
-    new Date(athlete.access_token_expires_at).getTime() >
-    Date.now() + 60_000
+    !forceRefresh &&
+    new Date(athlete.access_token_expires_at).getTime() > Date.now() + 60_000
   ) {
     return decryptToken(athlete.access_token_ciphertext);
   }
@@ -47,7 +68,15 @@ export const getAccessToken = async (athleteId: number) => {
       refresh_token: await decryptToken(athlete.refresh_token_ciphertext),
     }),
   });
-  if (!response.ok) throw new Error("Could not refresh Strava access token");
+  if (!response.ok) {
+    // A 400 or 401 from the token endpoint is Strava positively rejecting the
+    // refresh token, which means the authorization was revoked. Any other
+    // status is ambiguous and must not be treated as revocation.
+    if (response.status === 400 || response.status === 401) {
+      throw new StravaReconnectRequiredError();
+    }
+    throw new Error("Could not refresh Strava access token");
+  }
 
   const refreshed = stravaTokenResponseSchema.safeParse(await response.json());
   if (!refreshed.success) {
@@ -68,4 +97,45 @@ export const getAccessToken = async (athleteId: number) => {
     .eq("athlete_id", athleteId);
   if (updateTokenError) throw new Error(updateTokenError.message);
   return refreshed.data.access_token;
+};
+
+/**
+ * Performs a Strava API request with the athlete's stored authorization,
+ * retrying once with a forcibly refreshed token on 401: a concurrent request
+ * can refresh the token between this module's read and its API call, so a
+ * single 401 does not prove the authorization was revoked.
+ */
+export const stravaApiForAthlete = async (athleteId: number, path: string) => {
+  try {
+    return await stravaApi(await getAccessToken(athleteId), path);
+  } catch (error) {
+    if (!(error instanceof StravaApiError) || error.status !== 401) throw error;
+    return stravaApi(
+      await getAccessToken(athleteId, { forceRefresh: true }),
+      path,
+    );
+  }
+};
+
+/**
+ * Confirms with Strava's API that an athlete's stored authorization still
+ * grants API access. Webhook deliveries are unauthenticated, so a
+ * deauthorization event is only honored once Strava positively rejects the
+ * stored credentials; ambiguous failures throw so the event is retried
+ * instead of deleting the athlete's data.
+ */
+export const isAthleteAuthorized = async (athleteId: number) => {
+  try {
+    await stravaApiForAthlete(athleteId, "/athlete");
+    return true;
+  } catch (error) {
+    if (error instanceof StravaApiError && error.status === 401) return false;
+    if (
+      error instanceof StravaAthleteNotConnectedError ||
+      error instanceof StravaReconnectRequiredError
+    ) {
+      return false;
+    }
+    throw error;
+  }
 };

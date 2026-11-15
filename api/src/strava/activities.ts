@@ -1,5 +1,12 @@
 import { supabase } from "../supabase";
-import { getAccessToken, stravaApi } from "./client";
+import {
+  getAccessToken,
+  stravaApi,
+  stravaApiForAthlete,
+  StravaApiError,
+  StravaAthleteNotConnectedError,
+} from "./client";
+import { StravaReconnectRequiredError } from "./crypto";
 import type { Activity, ActivitySummary } from "./types";
 
 const ROUTE_COORDINATES_PER_MATCH = 2_000;
@@ -150,6 +157,42 @@ export const removeActivityCollection = async (
     activity_id_input: activityId,
   });
   if (error) throw new Error(error.message);
+};
+
+/**
+ * Confirms with Strava's API that an activity is really unavailable to this
+ * integration (deleted, private, or behind a revoked authorization) before
+ * collection data is removed. Webhook deliveries are unauthenticated, so a
+ * destructive event is only honored on positive confirmation; ambiguous
+ * failures throw so the event is retried instead of deleting data.
+ */
+export const isActivityUnavailable = async (
+  athleteId: number,
+  activityId: number,
+) => {
+  try {
+    const response = await stravaApiForAthlete(
+      athleteId,
+      `/activities/${activityId}`,
+    );
+    const activity = (await response.json()) as Activity;
+    return Boolean(activity.private);
+  } catch (error) {
+    if (error instanceof StravaApiError) {
+      // 404 means the activity no longer exists, and a 401 with a freshly
+      // refreshed token means the authorization itself was revoked.
+      return error.status === 404 || error.status === 401;
+    }
+    if (
+      error instanceof StravaAthleteNotConnectedError ||
+      error instanceof StravaReconnectRequiredError
+    ) {
+      // Nothing is stored for an unconnected athlete, and a revoked
+      // authorization cannot be re-verified; removal is safe in both cases.
+      return true;
+    }
+    throw error;
+  }
 };
 
 const completeActivity = async (
