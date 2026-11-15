@@ -19,10 +19,10 @@ export const ActivitySummaryPreference = ({
   const intl = useIntl();
 
   return (
-    <section className="flex h-full flex-col rounded-[1.5rem] bg-surface-container-low p-4 sm:p-5">
+    <section className="flex h-full flex-col rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-low p-4 shadow-sm sm:p-5">
       <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.9rem] bg-primary-container text-on-surface">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.9rem] bg-town-sign text-[#171716]">
             <LocalIcon name={appendSignSummary ? "note" : "noteOff"} />
           </span>
           <div>
@@ -77,7 +77,7 @@ export const ActivitySummaryPreference = ({
               >
                 <span
                   aria-hidden="true"
-                  className={`h-4 w-4 rounded-full bg-surface-container-lowest shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${
+                  className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${
                     appendSignSummary ? "translate-x-5" : "translate-x-0"
                   }`}
                 />
@@ -85,7 +85,7 @@ export const ActivitySummaryPreference = ({
             </>
           ) : (
             <a
-              className="rounded-full bg-primary-container px-4 py-2.5 font-headline text-xs font-black text-on-surface transition-[background-color,color] hover:bg-on-surface hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface"
+              className="rounded-full bg-on-surface px-4 py-2.5 font-headline text-xs font-black text-surface transition-[opacity,transform] hover:scale-[1.02] hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface"
               href="/api/strava/connect?activity_summary=1"
             >
               <FormattedMessage id="strava.preference.reconnect" />

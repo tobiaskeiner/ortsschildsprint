@@ -34,7 +34,7 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
   const selectedSign = signs.find((sign) => sign.osm_id === selectedSignOsmId);
   if (!firstSign) {
     return (
-      <section className="rounded-[1.75rem] bg-surface-container-low p-8">
+      <section className="rounded-[1.75rem] border border-outline-variant/55 bg-surface-container-low p-8 shadow-sm">
         <p className="font-headline text-xs font-black tracking-[0.18em] text-secondary uppercase">
           <FormattedMessage id="strava.map.title" />
         </p>
@@ -46,7 +46,7 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
   }
 
   return (
-    <section className="overflow-hidden rounded-[1.75rem] bg-surface-container-low">
+    <section className="overflow-hidden rounded-[1.75rem] border border-outline-variant/55 bg-surface-container-low shadow-[0_1.25rem_3rem_rgb(6_15_30/0.1)]">
       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
         <div>
           <p className="font-headline text-xs font-black tracking-[0.18em] text-secondary uppercase">
@@ -61,7 +61,7 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
         </div>
         <div
           aria-label={intl.formatMessage({ id: "strava.map.view" })}
-          className="flex w-fit flex-wrap gap-1 rounded-[1rem] bg-surface-container-high p-1"
+          className="flex w-fit flex-wrap gap-1 rounded-[1rem] border border-outline-variant/45 bg-surface-container-high p-1"
           role="group"
         >
           {[
@@ -83,7 +83,7 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
                 aria-pressed={isSelected}
                 className={`flex items-center gap-1.5 rounded-xl px-3 py-2 font-headline text-xs font-black transition-[background-color,color,box-shadow] hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface ${
                   isSelected
-                    ? "bg-surface-container-lowest text-on-surface shadow-sm"
+                    ? "bg-on-surface text-surface shadow-[0_0.35rem_1rem_rgb(0_0_0/0.22)]"
                     : "text-secondary hover:bg-surface-container-lowest/60 hover:text-on-surface"
                 }`}
                 key={id}
@@ -120,8 +120,8 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
                 onClick={() => setSelectedSignOsmId(sign.osm_id)}
               >
                 <MapMarkerIcon
-                  className={`transition-transform hover:scale-120 ${
-                    selectedSign?.osm_id === sign.osm_id ? "text-error" : ""
+                  className={`text-town-sign transition-transform hover:scale-120 ${
+                    selectedSign?.osm_id === sign.osm_id ? "text-[#c5a600]" : ""
                   }`}
                 />
               </Marker>
@@ -137,15 +137,17 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
                     ["linear"],
                     ["heatmap-density"],
                     0,
-                    "rgba(37, 99, 235, 0)",
+                    "rgba(28, 28, 28, 0)",
                     0.2,
-                    "#2563eb",
+                    "#b5b5b0",
                     0.55,
-                    "#8b5cf6",
+                    "#777772",
                     0.82,
-                    "#ef4444",
+                    "#3f3f3d",
+                    0.94,
+                    "#252524",
                     1,
-                    "#b91c1c",
+                    "#111111",
                   ],
                   "heatmap-intensity": [
                     "interpolate",
@@ -176,7 +178,7 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
                 id="collected-sign-dots"
                 type="circle"
                 paint={{
-                  "circle-color": "#2563eb",
+                  "circle-color": "#f0cf20",
                   "circle-opacity": 0.82,
                   "circle-radius": [
                     "interpolate",
@@ -187,7 +189,7 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
                     12,
                     8,
                   ],
-                  "circle-stroke-color": "#ffffff",
+                  "circle-stroke-color": "#202020",
                   "circle-stroke-width": 2,
                 }}
               />
@@ -196,7 +198,7 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
         </Map>
 
         {selectedSign && (
-          <div className="absolute inset-x-3 top-3 z-10 max-h-[calc(100%-1.5rem)] overflow-y-auto rounded-[1.5rem] bg-surface-container-lowest p-3.5 shadow-xl sm:inset-x-4 sm:max-h-[calc(100%-2rem)] sm:p-5 md:inset-x-auto md:right-6 md:top-6 md:w-[22rem] md:max-h-[calc(100%-3rem)] md:rounded-[1.75rem]">
+          <div className="absolute inset-x-3 top-3 z-10 max-h-[calc(100%-1.5rem)] overflow-y-auto rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-lowest p-3.5 shadow-xl sm:inset-x-4 sm:max-h-[calc(100%-2rem)] sm:p-5 md:inset-x-auto md:right-6 md:top-6 md:w-[22rem] md:max-h-[calc(100%-3rem)] md:rounded-[1.75rem]">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <h3 className="mb-1 break-words font-headline text-xl font-black leading-none tracking-tight text-on-surface uppercase sm:text-3xl">
@@ -228,7 +230,7 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
               </div>
 
               <a
-                className="flex items-center justify-center gap-2 rounded-2xl bg-surface-container-highest px-4 py-3 font-headline text-xs font-bold uppercase tracking-wider text-on-surface transition-colors hover:cursor-pointer hover:bg-surface-container-high md:py-4 md:text-sm"
+                className="flex items-center justify-center gap-2 rounded-2xl bg-primary-container px-4 py-3 font-headline text-xs font-bold uppercase tracking-wider text-on-primary-container transition-colors hover:cursor-pointer hover:bg-primary hover:text-white md:py-4 md:text-sm"
                 href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${selectedSign.lat},${selectedSign.long}`}
                 rel="noopener"
                 target="_blank"

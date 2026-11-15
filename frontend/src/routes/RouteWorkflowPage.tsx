@@ -272,7 +272,7 @@ const RouteWorkflowPage: React.FC = () => {
                   <Layer
                     id="route-line"
                     type="line"
-                    paint={{ "line-color": "#f0ca00", "line-width": 3 }}
+                    paint={{ "line-color": "#202020", "line-width": 3 }}
                   />
                   {step === "edit" && (
                     <Layer

@@ -58,18 +58,18 @@ export const CollectionStats = ({
   return (
     <section aria-label={intl.formatMessage({ id: "strava.stats.label" })}>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[1.5rem] bg-on-surface p-5 text-surface">
-          <p className="font-headline text-xs font-bold tracking-widest text-surface/70 uppercase">
+        <div className="rounded-[1.5rem] bg-gradient-to-br from-[#151515] via-[#2a2a2a] to-[#5a5a5a] p-5 text-white shadow-[0_1.25rem_2.75rem_rgb(0_0_0/0.22)]">
+          <p className="font-headline text-xs font-bold tracking-widest text-town-sign uppercase">
             <FormattedMessage id="strava.stats.signsCollected" />
           </p>
           <p className="mt-2 font-headline text-5xl font-black">
             {intl.formatNumber(collectedSigns)}
           </p>
-          <p className="mt-3 text-sm text-surface/70">
+          <p className="mt-3 text-sm text-white/75">
             {signsPerRideDescription}
           </p>
         </div>
-        <div className="rounded-[1.5rem] bg-surface-container-lowest p-5 text-on-surface">
+        <div className="rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-lowest p-5 text-on-surface shadow-sm">
           <p className="font-headline text-xs font-bold tracking-widest text-secondary uppercase">
             <FormattedMessage id="strava.stats.ridesChecked" />
           </p>
@@ -94,11 +94,11 @@ export const CollectionStats = ({
               aria-valuemax={hasRideTotal ? totalRides : undefined}
               aria-valuemin={hasRideTotal ? 0 : undefined}
               aria-valuenow={hasRideTotal ? checkedRides : undefined}
-              className="h-2 overflow-hidden rounded-full bg-surface-container-highest"
+              className="h-2 overflow-hidden rounded-full bg-surface-container-high"
               role="progressbar"
             >
               <span
-                className={`block h-full rounded-full bg-on-surface ${
+                className={`block h-full rounded-full bg-town-sign ${
                   hasRideTotal
                     ? "transition-[width] duration-500"
                     : "animate-pulse"
@@ -123,8 +123,8 @@ export const CollectionStats = ({
             </p>
           </div>
         </div>
-        <div className="rounded-[1.5rem] bg-surface-container-lowest p-5 text-on-surface">
-          <p className="font-headline text-xs font-bold tracking-widest uppercase">
+        <div className="rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-lowest p-5 text-on-surface shadow-sm">
+          <p className="font-headline text-xs font-bold tracking-widest text-secondary uppercase">
             <FormattedMessage id="strava.stats.lastThirtyDays" />
           </p>
           <p className="mt-2 font-headline text-5xl font-black">
@@ -134,8 +134,8 @@ export const CollectionStats = ({
             <FormattedMessage id="strava.stats.signsThisMonth" />
           </p>
         </div>
-        <div className="rounded-[1.5rem] bg-surface-container-lowest p-5 text-on-surface">
-          <p className="font-headline text-xs font-bold tracking-widest uppercase">
+        <div className="rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-lowest p-5 text-on-surface shadow-sm">
+          <p className="font-headline text-xs font-bold tracking-widest text-secondary uppercase">
             <FormattedMessage id="strava.stats.namedPlaces" />
           </p>
           <p className="mt-2 font-headline text-5xl font-black">

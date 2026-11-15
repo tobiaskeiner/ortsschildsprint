@@ -1,7 +1,7 @@
 import type { SVGProps } from "react";
 
 export type LocalIconName =
-  "dots" | "heatmap" | "history" | "note" | "noteOff" | "pin";
+  "check" | "dots" | "heatmap" | "history" | "note" | "noteOff" | "pin";
 
 interface LocalIconProps extends Omit<SVGProps<SVGSVGElement>, "children"> {
   name: LocalIconName;
@@ -65,5 +65,6 @@ export const LocalIcon = ({ name, size = 20, ...props }: LocalIconProps) => (
         <circle cx="5.5" cy="18.25" r="1.5" fill="currentColor" />
       </>
     )}
+    {name === "check" && <path d="m5 12.5 4.2 4.2L19.5 6.5" />}
   </svg>
 );
