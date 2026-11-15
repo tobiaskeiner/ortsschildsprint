@@ -1,0 +1,134 @@
+# Strava integration
+
+The Strava Worker integration lets athletes collect city-limit signs from
+outdoor rides. It stores only signs new to that athlete and displays the
+collection on the dashboard. During connection, athletes choose whether a
+summary is appended to new Strava activities that collect signs.
+
+## Database migration
+
+Apply the migrations in `api/supabase/migrations` before deploying the Worker:
+
+```sh
+cd api
+supabase db push
+```
+
+## Required configuration
+
+The Worker needs the normal Supabase service-role configuration plus these
+values:
+
+```txt
+STRAVA_CLIENT_ID=...
+STRAVA_CLIENT_SECRET=...
+STRAVA_REDIRECT_URI=...
+STRAVA_STATE_SECRET=...
+STRAVA_TOKEN_ENCRYPTION_KEY=...
+STRAVA_WEBHOOK_VERIFY_TOKEN=...
+```
+
+For local development, put these in `api/.env`. In production, store them as
+Wrangler secrets:
+
+```sh
+pnpm --dir api exec wrangler secret put STRAVA_CLIENT_ID
+pnpm --dir api exec wrangler secret put STRAVA_CLIENT_SECRET
+pnpm --dir api exec wrangler secret put STRAVA_REDIRECT_URI
+pnpm --dir api exec wrangler secret put STRAVA_STATE_SECRET
+pnpm --dir api exec wrangler secret put STRAVA_TOKEN_ENCRYPTION_KEY
+pnpm --dir api exec wrangler secret put STRAVA_WEBHOOK_VERIFY_TOKEN
+```
+
+Generate the encryption key with `openssl rand -base64 32`. Keep it stable:
+changing it makes previously encrypted Strava tokens unreadable and athletes
+must reconnect.
+
+`STRAVA_WEBHOOK_SIGNING_SECRET` is optional. Strava does not currently sign
+webhook deliveries and does not issue a signing secret, so deliveries without
+an `X-Strava-Signature` header are accepted and treated as untrusted triggers.
+Set this secret only when deliveries pass through a proxy that signs them (or
+once Strava ships per-event signatures): any delivery that presents the header
+must then validate against it, while unsigned deliveries keep working.
+
+## Strava application settings
+
+Set the application's Authorization Callback Domain to the domain hosting the
+frontend. Configure the redirect URI to match it exactly:
+
+```txt
+https://ortsschildsprint.com/api/strava/callback
+```
+
+During authorization Ortschildsprint always requests `activity:read_all` to
+analyse rides. It requests `activity:write` only when the athlete opts in to
+activity summaries; that permission is used only to update the description of
+a newly completed ride that collected new signs.
+
+Create a Strava webhook subscription after deployment with:
+
+```txt
+https://ortsschildsprint.com/api/strava/webhook
+```
+
+Use the same value for the subscription verify token and
+`STRAVA_WEBHOOK_VERIFY_TOKEN`. Webhook deliveries carry no per-event
+authentication (Strava does not sign them), so every delivery is treated as an
+untrusted trigger: activity data is always fetched from the Strava API with
+the athlete's stored token, and destructive events — activity deletion,
+privatization, and deauthorization — are only honored once Strava's API
+confirms them.
+
+## Import behavior
+
+- A first connection analyses the latest 20 eligible outdoor rides in the
+  background. It never changes historic activity descriptions. If that work is
+  interrupted, the deployed scheduler resumes it every five minutes.
+- Dashboard imports process up to 15 eligible outdoor rides per batch. A
+  deployed Worker continues one import batch per pending athlete every five
+  minutes, up to 25 athletes per run. Only one batch for an athlete can run at
+  a time; another request receives a `409` and can be retried shortly.
+- Each batch first reconciles the newest rides before walking the historic
+  cursor, so a ride whose webhook delivery was missed (Strava retries only
+  three times) is imported by the next batch or Import request. The historic
+  cursor is untouched by this reconciliation.
+- The scheduler also reconciles a few connected athletes per run, round-robin,
+  so a missed webhook delivery is recovered for every connected athlete
+  without an Import request — including athletes whose historic import already
+  completed.
+- A historic batch uses one activity-listing request, then one route-stream
+  request for each previously unprocessed ride. The listing already supplies
+  the metadata needed to filter historic rides, and one access token is reused
+  across the batch. A live ride still fetches its detailed activity and, when
+  it finds new signs and the athlete enabled activity summaries, uses one
+  write request to update its description.
+- Routes are split only for Supabase sign matching; that does not add Strava
+  requests.
+- Activity completion and sign collection are written atomically. A failed
+  webhook event is retried by the scheduler with backoff (using Strava's
+  Retry-After when provided) and abandoned after 12 attempts (roughly seven
+  hours), recorded with its last error; an activity whose route stream is not
+  ready is therefore not incorrectly marked as processed.
+- When historic imports later reach an older matching ride, the collection is
+  attributed to that earlier ride. This makes `first_activity_id` and
+  `collected_at` correct once the full history has finished importing.
+- Eligible rides include road, e-bike, mountain, e-mountain, gravel,
+  handcycle, and velomobile activities. Trainer, manual, and virtual rides are
+  excluded, as are activities marked private in Strava.
+- When Strava reports that an activity was deleted or made private, its
+  activity-derived collection data is removed — but only after Strava's API
+  confirms the report, since webhook deliveries are unauthenticated. If an
+  activity becomes shareable again, Ortschildsprint analyses it without
+  changing its description.
+
+## Local testing
+
+Use `localhost` as the Strava callback domain and set:
+
+```txt
+STRAVA_REDIRECT_URI=http://localhost:5173/api/strava/callback
+```
+
+Start the full application with `pnpm run dev`, then open
+`http://localhost:5173/strava`. Strava can only deliver webhooks to a public
+HTTPS URL, so a tunnel is needed to test automatic ride processing locally.

@@ -20,6 +20,98 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "menu.link.privacyPolicy": "Datenschutzerklärung",
     "menu.link.strava": "Strava",
     "menu.link.github": "GitHub Projekt",
+    "strava.home.link": "Sammle Ortsschilder mit Strava",
+    "strava.dashboard.loading.label": "Strava-Dashboard wird geladen",
+    "strava.dashboard.loading.collection": "Deine Sammlung wird geladen",
+    "strava.dashboard.error.title":
+      "Deine Sammlung konnte nicht geladen werden",
+    "strava.dashboard.error.description": "Bitte versuche es erneut.",
+    "strava.dashboard.retry": "Erneut versuchen",
+    "strava.dashboard.collection": "Deine Sammlung",
+    "strava.error.importActivities":
+      "Aktivitäten konnten nicht importiert werden.",
+    "strava.error.savePreference":
+      "Deine Einstellung konnte nicht gespeichert werden.",
+    "strava.connect.eyebrow": "Ortschildsprint × Strava",
+    "strava.connect.title": "Sammle Ortseinfahrtsschilder auf jeder Fahrt.",
+    "strava.connect.description":
+      "Verbinde Strava, um die Schilder zu finden, an denen du nach jeder Fahrt im Freien vorbeikommst. Wähle, ob neue Entdeckungen auch in der Aktivitätsbeschreibung erscheinen sollen.",
+    "strava.connect.activityDescriptions": "Aktivitätsbeschreibungen",
+    "strava.connect.permissionHint":
+      "Du kannst dies später ändern, wenn deine Strava-Berechtigungen es zulassen.",
+    "strava.connect.addSummary": "Zusammenfassung zu Schildern hinzufügen",
+    "strava.connect.addSummary.description":
+      "Füge nur dann eine kurze Ortschildsprint-Notiz hinzu, wenn bei einer Fahrt neue Schilder gefunden werden.",
+    "strava.connect.keepDescriptions": "Beschreibungen unverändert lassen",
+    "strava.connect.keepDescriptions.description":
+      "Verfolge deine Sammlung hier privat, ohne eine Strava-Aktivität zu ändern.",
+    "strava.connect.action": "Mit Strava verbinden",
+    "strava.preference.title": "Aktivitätsnotizen",
+    "strava.preference.enabled.description":
+      "Neue Entdeckungen werden deinen Strava-Aktivitäten hinzugefügt.",
+    "strava.preference.disabled.description":
+      "Die Beschreibungen deiner Strava-Aktivitäten bleiben unverändert.",
+    "strava.preference.saving": "Wird gespeichert",
+    "strava.preference.on": "An",
+    "strava.preference.off": "Aus",
+    "strava.preference.enable": "Aktivitätsnotizen aktivieren",
+    "strava.preference.disable": "Aktivitätsnotizen deaktivieren",
+    "strava.preference.reconnect": "Erneut verbinden, um es zu aktivieren",
+    "strava.preference.permission":
+      "Zum Schreiben von Zusammenfassungen benötigst du die Schreibberechtigung für Strava-Aktivitäten.",
+    "strava.history.title": "Fahrtenverlauf",
+    "strava.history.action.loadingRecent": "Letzte Fahrten werden geprüft …",
+    "strava.history.action.searchFull": "Gesamten Verlauf durchsuchen",
+    "strava.history.action.checking": "Fahrten werden geprüft …",
+    "strava.history.action.checkNext": "Nächste Fahrten prüfen",
+    "strava.history.status.complete": "Vollständiger Verlauf abgeschlossen",
+    "strava.history.status.running": "Automatische Prüfung aktiv",
+    "strava.history.status.loadingRecent": "Letzte Fahrten werden geladen",
+    "strava.history.status.notScanned": "Ältere Fahrten nicht geprüft",
+    "strava.history.description.complete":
+      "Alle verfügbaren Fahrten im Freien wurden geprüft.",
+    "strava.history.description.running":
+      "Ältere Fahrten werden jede Stunde automatisch geprüft.",
+    "strava.history.description.loadingRecent":
+      "Deine neuesten Fahrten im Freien werden zuerst geprüft.",
+    "strava.history.description.notScanned":
+      "Durchsuche ältere Fahrten einmal, um deine Sammlung zu vervollständigen.",
+    "strava.history.ridesChecked":
+      "{count, plural, one {# Fahrt im Freien geprüft} other {# Fahrten im Freien geprüft}}",
+    "strava.history.ridesChecked.withTotal":
+      "{processed, number} von {total, number} Fahrten im Freien geprüft",
+    "strava.stats.label": "Sammlungsstatistiken",
+    "strava.stats.signsCollected": "Gesammelte Schilder",
+    "strava.stats.signsPerRide": "{count} Schilder pro geprüfter Fahrt.",
+    "strava.stats.uniqueSign": "Jedes einzigartige Ortsschild.",
+    "strava.stats.ridesChecked": "Geprüfte Fahrten",
+    "strava.stats.ridesCheckedProgress":
+      "{checked, number} von {total, number} Fahrten geprüft",
+    "strava.stats.loadingRideCount": "Gesamtzahl der Fahrten wird geladen",
+    "strava.stats.noOutdoorRides": "Noch keine Fahrten im Freien auf Strava.",
+    "strava.stats.ridesCheckedPercent":
+      "{progress} deiner Fahrten im Freien auf Strava geprüft.",
+    "strava.stats.countingRides":
+      "Die Anzahl deiner Fahrten im Freien auf Strava wird im Hintergrund ermittelt …",
+    "strava.stats.lastThirtyDays": "Letzte 30 Tage",
+    "strava.stats.signsThisMonth": "Diesen Monat neu entdeckte Schilder.",
+    "strava.stats.namedPlaces": "Benannte Orte",
+    "strava.stats.distinctNames": "Einzigartige Namen in deiner Sammlung.",
+    "strava.map.defaultSign": "Ortsschild",
+    "strava.map.title": "Sammlungskarte",
+    "strava.map.empty":
+      "Dein erstes neues Schild erscheint hier, nachdem eine Strava-Fahrt verarbeitet wurde.",
+    "strava.map.heading": "Entdecke deinen nächsten Horizont.",
+    "strava.map.description":
+      "Ändere die Ansicht, um einzelne Schilder oder die Strecken zu sehen, auf denen deine Sammlung wächst.",
+    "strava.map.view": "Kartenansicht",
+    "strava.map.view.signposts": "Schilder",
+    "strava.map.view.heatmap": "Heatmap",
+    "strava.map.view.dots": "Punktansicht",
+    "strava.map.closeSign": "Informationen zum Schild schließen",
+    "strava.map.signId": "OSM-SCHILD-ID",
+    "strava.map.coordinates": "BREITE / LÄNGE",
+    "strava.map.streetView": "Street View",
     "legalnotice.title": "Impressum",
     "legalnotice.name": "Name und Anschrift",
     "legalnotice.contact": "Kontakt",
@@ -113,6 +205,95 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "menu.link.privacyPolicy": "Privacy Policy",
     "menu.link.strava": "Strava",
     "menu.link.github": "GitHub Project",
+    "strava.home.link": "Collect signs with Strava",
+    "strava.dashboard.loading.label": "Loading Strava dashboard",
+    "strava.dashboard.loading.collection": "Loading your collection",
+    "strava.dashboard.error.title": "Could not load your collection",
+    "strava.dashboard.error.description": "Please try again.",
+    "strava.dashboard.retry": "Try again",
+    "strava.dashboard.collection": "Your collection",
+    "strava.error.importActivities": "Could not import activities.",
+    "strava.error.savePreference": "Could not save your preference.",
+    "strava.connect.eyebrow": "Ortschildsprint × Strava",
+    "strava.connect.title": "Collect city limit signs on every ride.",
+    "strava.connect.description":
+      "Connect Strava to find the signs you pass after each outdoor ride. Choose whether new discoveries should also appear in the activity description.",
+    "strava.connect.activityDescriptions": "Activity descriptions",
+    "strava.connect.permissionHint":
+      "You can change this later whenever your Strava permissions allow it.",
+    "strava.connect.addSummary": "Add a sign summary",
+    "strava.connect.addSummary.description":
+      "Add a short Ortschildsprint note only when a ride finds new signs.",
+    "strava.connect.keepDescriptions": "Keep descriptions untouched",
+    "strava.connect.keepDescriptions.description":
+      "Track your collection privately here without changing any Strava activity.",
+    "strava.connect.action": "Connect with Strava",
+    "strava.preference.title": "Activity notes",
+    "strava.preference.enabled.description":
+      "New discoveries are added to your Strava activities.",
+    "strava.preference.disabled.description":
+      "Strava activity descriptions stay untouched.",
+    "strava.preference.saving": "Saving",
+    "strava.preference.on": "On",
+    "strava.preference.off": "Off",
+    "strava.preference.enable": "Enable activity notes",
+    "strava.preference.disable": "Disable activity notes",
+    "strava.preference.reconnect": "Reconnect to enable",
+    "strava.preference.permission":
+      "Writing summaries needs Strava activity-writing permission.",
+    "strava.history.title": "Ride history",
+    "strava.history.action.loadingRecent": "Checking recent rides …",
+    "strava.history.action.searchFull": "Search full history",
+    "strava.history.action.checking": "Checking rides …",
+    "strava.history.action.checkNext": "Check next rides",
+    "strava.history.status.complete": "Full history complete",
+    "strava.history.status.running": "Automatic scan active",
+    "strava.history.status.loadingRecent": "Recent rides loading",
+    "strava.history.status.notScanned": "Older rides not scanned",
+    "strava.history.description.complete":
+      "Every available outdoor ride has been checked.",
+    "strava.history.description.running":
+      "Older rides are checked automatically every hour.",
+    "strava.history.description.loadingRecent":
+      "Your latest outdoor rides are being checked first.",
+    "strava.history.description.notScanned":
+      "Search older rides once to complete your collection.",
+    "strava.history.ridesChecked":
+      "{count, plural, one {# outdoor ride checked} other {# outdoor rides checked}}",
+    "strava.history.ridesChecked.withTotal":
+      "{processed, number} of {total, number} outdoor rides checked",
+    "strava.stats.label": "Collection statistics",
+    "strava.stats.signsCollected": "Signs collected",
+    "strava.stats.signsPerRide": "{count} signs per checked ride.",
+    "strava.stats.uniqueSign": "Every unique city limit sign.",
+    "strava.stats.ridesChecked": "Rides checked",
+    "strava.stats.ridesCheckedProgress":
+      "{checked, number} of {total, number} rides checked",
+    "strava.stats.loadingRideCount": "Loading total ride count",
+    "strava.stats.noOutdoorRides": "No outdoor Strava rides yet.",
+    "strava.stats.ridesCheckedPercent":
+      "{progress} of your outdoor Strava rides checked.",
+    "strava.stats.countingRides":
+      "Counting your outdoor Strava rides in the background …",
+    "strava.stats.lastThirtyDays": "Last 30 days",
+    "strava.stats.signsThisMonth": "New signs discovered this month.",
+    "strava.stats.namedPlaces": "Named places",
+    "strava.stats.distinctNames": "Distinct names in your collection.",
+    "strava.map.defaultSign": "City limit sign",
+    "strava.map.title": "Collection map",
+    "strava.map.empty":
+      "Your first new sign will appear here after a processed Strava ride.",
+    "strava.map.heading": "Find your next horizon.",
+    "strava.map.description":
+      "Switch the lens to see individual signs or the routes where your collection is growing.",
+    "strava.map.view": "Map view",
+    "strava.map.view.signposts": "Signposts",
+    "strava.map.view.heatmap": "Heat map",
+    "strava.map.view.dots": "Dot view",
+    "strava.map.closeSign": "Close sign information",
+    "strava.map.signId": "OSM SIGN ID",
+    "strava.map.coordinates": "LAT / LONG",
+    "strava.map.streetView": "Street View",
     "legalnotice.title": "Legal Notice",
     "legalnotice.name": "Name and Address",
     "legalnotice.contact": "Contact",

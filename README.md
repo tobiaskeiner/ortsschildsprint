@@ -44,7 +44,7 @@ The app is built around a privacy-first flow: route files are parsed in the brow
 - Node.js
 - pnpm
 - Cloudflare Wrangler for API/frontend deployment
-- Supabase project with the expected `city_limit_signs` table and `signs_in_box` RPC
+- Supabase CLI and project with the expected `city_limit_signs` table and `signs_in_box` RPC
 
 ## Setup
 
@@ -54,15 +54,17 @@ Install dependencies from the repository root:
 pnpm install
 ```
 
-Create local environment files as needed.
-
-API:
+Create the API configuration in `api/.env` (not `api/.dev.vars`):
 
 ```sh
-# api/.dev.vars
 SUPABASE_URL=your_supabase_project_url
-SUPABASE_KEY=your_supabase_service_or_anon_key
+SUPABASE_KEY=your_supabase_service_role_key
+INTERNAL_API_SECRET=a_shared_local_secret
 ```
+
+Set the same `INTERNAL_API_SECRET` in `frontend/.env.local`. See the
+[API README](./api/README.md) for migrations and
+[the Strava guide](./api/src/strava/README.md) for optional Strava settings.
 
 ## Development
 
@@ -79,7 +81,8 @@ pnpm --dir api dev
 pnpm --dir frontend dev
 ```
 
-By default, Wrangler serves the API Worker locally and Vite serves the frontend. Ensure `VITE_OS_API_URL` points at the running API Worker.
+By default, Wrangler serves the API Worker locally and Vite serves the
+frontend. Vite proxies `/api/*` to the Worker at port 8787.
 
 ## Useful Commands
 
