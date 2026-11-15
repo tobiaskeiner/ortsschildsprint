@@ -115,9 +115,15 @@ export const useStravaDashboard = () => {
   }, [dashboard]);
 
   useEffect(() => {
+    const importState = dashboard?.importState;
+    // Refresh while an import is still running: either a requested full
+    // history, or the initial import that starts asynchronously right after
+    // connecting — a fresh connection has neither flag set yet.
     if (
-      !dashboard?.importState?.full_history_requested ||
-      dashboard.importState.completed
+      !importState ||
+      importState.completed ||
+      (!importState.full_history_requested &&
+        importState.initial_import_complete)
     ) {
       return;
     }
@@ -125,11 +131,7 @@ export const useStravaDashboard = () => {
       void reloadDashboard().catch(() => undefined);
     }, 30_000);
     return () => window.clearInterval(refresh);
-  }, [
-    dashboard?.importState?.completed,
-    dashboard?.importState?.full_history_requested,
-    reloadDashboard,
-  ]);
+  }, [dashboard?.importState, reloadDashboard]);
 
   return { dashboard, error: hasError, reloadDashboard };
 };

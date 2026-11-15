@@ -130,13 +130,13 @@ const processActivityWebhookEvent = async (event: StoredWebhookEvent) => {
     activityEligibilityMayHaveChanged
   ) {
     try {
+      // The athlete's summary preference decides whether descriptions are
+      // updated: opted-out athletes never granted activity:write, so a forced
+      // update would fail on every new ride and churn webhook retries.
       const countsTowardRideTotal = await processActivity(
         event.owner_id,
         event.object_id,
-        {
-          retryWhenStreamUnavailable: true,
-          updateDescription: event.aspect_type === "create",
-        },
+        { retryWhenStreamUnavailable: true },
       );
       // Only activities that count toward the ride total can change it, so runs,
       // walks, and trainer rides no longer invalidate the cached total (whose
