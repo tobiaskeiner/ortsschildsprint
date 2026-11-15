@@ -4,28 +4,30 @@ export interface PrivacyPolicySection {
   listItems?: string[];
 }
 
-export const privacyPolicyUpdatedAt = "May 1, 2026";
+export const privacyPolicyUpdatedAt = "November 14, 2026";
 
 export const privacyPolicySections: PrivacyPolicySection[] = [
   {
     title: "1. Principles",
     paragraphs: [
       "Tobias Keiner, Helmholtzstraße 2, 01069 Dresden, email: mail@ortsschildsprint.com, is responsible for the content of and data processing on this website.",
-      "The operator of ortsschildsprint.com places great importance on protecting your privacy. This website does not collect personal data, does not use cookies, and does not use tracking. No user accounts are created and no personal information is stored.",
+      "The operator of ortsschildsprint.com places great importance on protecting your privacy. The route-file workflow does not create an account or use tracking. The optional Strava integration creates a server-side connection and session so that it can analyse rides and display a personal sign collection.",
+      "Necessary first-party cookies are used only when the Strava integration is connected: short-lived OAuth state cookies protect the connection flow, and a session cookie keeps the connected dashboard available. They are not used for advertising or cross-site tracking.",
     ],
   },
   {
     title: "2. Processed Data",
     paragraphs: [
-      "The only data processed when using this website are geographic coordinates in the form of a bounding box. These coordinates are created when you select a route locally on your device. They are used exclusively to query position and point data (points of interest) through the API at api.ortsschildsprint.com in order to enrich the selected route with relevant location information.",
-      "These coordinates do not constitute personal data within the meaning of the GDPR because they cannot be assigned to a natural person. These coordinates are not stored beyond the individual request.",
+      "For the route-file workflow, geographic coordinates are processed as a bounding box to query city-limit signs. Route files themselves remain in the browser and are not uploaded by this workflow. Bounding-box coordinates are not stored beyond the individual request.",
+      "If you choose to connect Strava, the service stores your Strava athlete ID, display name, profile image URL, granted permissions, encrypted access and refresh tokens, your activity-summary preference, session identifiers, activity IDs and dates, and the city-limit signs collected from eligible rides. Tokens are encrypted before they are written to the database.",
+      "To protect the public city-sign lookup, the API derives a pseudonymous rate-limit key from the Cloudflare client IP address and stores it with the request window and counter. These rows are removed after roughly 24 hours by scheduled cleanup.",
     ],
   },
   {
     title: "3. Hosting and Infrastructure",
     paragraphs: [
       "Website and API (Cloudflare): The user interface at ortsschildsprint.com and the API at api.ortsschildsprint.com are hosted via Cloudflare (Cloudflare Pages and Cloudflare Workers respectively). Cloudflare is a US-based company used here as a CDN provider. As part of hosting, Cloudflare may temporarily process technical connection data such as IP address, access time, requested URL, HTTP status code, referrer, browser type, operating system, and other connection metadata required for delivery and security. More information is available in Cloudflare's privacy policy: https://www.cloudflare.com/privacypolicy/",
-      "Database (Supabase): The API performs read-only database queries (SELECT) against a PostgreSQL database hosted by Supabase. These queries contain the bounding box coordinates described above. No personal data is stored in the database. As part of Supabase's technical operation, server-side connection and log data of the API-to-database communication may be processed, in particular request timestamps, technical error and event logs, and the bounding box coordinates transmitted by the API. The IP address of website visitors is not directly transmitted to Supabase through the database query. More information is available in Supabase's privacy policy: https://supabase.com/privacy",
+      "Database (Supabase): The API uses a PostgreSQL database hosted by Supabase for city-sign data, rate limiting, and the optional Strava integration. This includes the connection, session, collection, and rate-limit data described above. As part of Supabase's technical operation, server-side connection and log data may also be processed. More information is available in Supabase's privacy policy: https://supabase.com/privacy",
     ],
   },
   {
@@ -37,19 +39,19 @@ export const privacyPolicySections: PrivacyPolicySection[] = [
   {
     title: "5. Fonts and Media",
     paragraphs: [
-      "All fonts and images are served directly by ortsschildsprint.com. No external services such as Google Fonts or comparable third-party providers are used. As a result, loading the page does not establish connections to external font servers.",
+      "Fonts and application images are served directly by ortsschildsprint.com. On a connected Strava dashboard, the browser may request the profile image URL supplied by Strava. No external font service such as Google Fonts is used.",
     ],
   },
   {
-    title: "6. No Additional Third Parties",
+    title: "6. Optional Strava and External Links",
     paragraphs: [
-      "No additional third-party services, analytics tools, advertising networks, or social media plugins are used.",
+      "When you connect Strava, Ortschildsprint redirects you to Strava for authorization and calls Strava's API to retrieve the rides needed for the feature. The map's Street View button opens Google Maps only after you choose it. No analytics, advertising networks, or social-media plugins are used.",
     ],
   },
   {
     title: "7. Your Rights",
     paragraphs: [
-      "Although this website does not collect personal data, you generally have the following rights under the GDPR:",
+      "You generally have the following rights with respect to personal data processed by the optional Strava integration and rate limiting:",
       "If you have any questions or concerns, please contact: mail@ortsschildsprint.com",
     ],
     listItems: [

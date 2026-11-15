@@ -9,6 +9,7 @@ import RootLayout from "./routes/RootLayout";
 import {
   LEGAL_NOTICE_ROUTE,
   PRIVACY_POLICY_ROUTE,
+  STRAVA_ROUTE,
   WORKFLOW_ROUTE,
 } from "./utils/routes";
 
@@ -53,11 +54,18 @@ const privacyPolicyRoute = createRoute({
   component: lazyRouteComponent(() => import("./components/PrivacyPolicy")),
 });
 
+const stravaRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: STRAVA_ROUTE.slice(1),
+  component: lazyRouteComponent(() => import("./routes/StravaDashboardPage")),
+});
+
 const routeTree = rootRoute.addChildren([
   homeRoute,
   workflowRoute.addChildren([workflowEditRoute, workflowExportRoute]),
   legalNoticeRoute,
   privacyPolicyRoute,
+  stravaRoute,
 ]);
 
 export const router = createRouter({

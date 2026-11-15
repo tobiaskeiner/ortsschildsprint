@@ -4,6 +4,9 @@
   "main": "src/index.ts",
   "workers_dev": false,
   "compatibility_date": "2026-04-23",
+  "triggers": {
+    "crons": ["0 * * * *"],
+  },
   "observability": {
     "enabled": false,
     "head_sampling_rate": 1,

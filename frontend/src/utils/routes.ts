@@ -4,6 +4,7 @@ export const WORKFLOW_EDIT_ROUTE = "/route/edit";
 export const WORKFLOW_EXPORT_ROUTE = "/route/export";
 export const LEGAL_NOTICE_ROUTE = "/legal-notice";
 export const PRIVACY_POLICY_ROUTE = "/privacy-policy";
+export const STRAVA_ROUTE = "/strava";
 
 export type WorkflowStepKey = "preview" | "edit" | "export";
 

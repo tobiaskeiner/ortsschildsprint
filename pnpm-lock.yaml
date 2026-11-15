@@ -184,9 +184,24 @@ importers:
         specifier: 4.6.7
         version: 4.6.7
     devDependencies:
+      '@eslint/js':
+        specifier: 10.0.1
+        version: 10.0.1(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))
+      eslint:
+        specifier: 10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      globals:
+        specifier: 17.14.0
+        version: 17.14.0
       prettier:
         specifier: 3.9.10
         version: 3.9.10
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      typescript-eslint:
+        specifier: 8.72.1
+        version: 8.72.1(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
       wrangler:
         specifier: 4.156.2
         version: 4.156.2(@types/node@26.6.6)

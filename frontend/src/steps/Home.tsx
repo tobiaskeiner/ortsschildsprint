@@ -5,7 +5,7 @@ import { GeoJsonContext } from "../context/GeoJsonContext";
 import ErrorAlert from "../components/ErrorAlert";
 import { FormattedMessage } from "react-intl";
 import { useNavigate } from "@tanstack/react-router";
-import { WORKFLOW_ROUTE } from "../utils/routes";
+import { STRAVA_ROUTE, WORKFLOW_ROUTE } from "../utils/routes";
 
 const Home: React.FC = () => {
   const geoContext = use(GeoJsonContext);
@@ -39,6 +39,13 @@ const Home: React.FC = () => {
           <p className="max-w-xl text-sm text-on-surface-variant sm:text-base xl:max-w-sm">
             <FormattedMessage id="home.description"></FormattedMessage>
           </p>
+          <a
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-surface-container-high px-4 py-2 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-highest"
+            href={STRAVA_ROUTE}
+          >
+            <img alt="" className="h-4 w-4" src="/img/strava.png" />
+            <FormattedMessage id="strava.home.link" />
+          </a>
           <div className="hidden sm:mt-8 xl:block">
             <PrivacyStatement />
           </div>
