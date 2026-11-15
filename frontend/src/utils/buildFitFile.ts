@@ -43,15 +43,10 @@ export const buildFitFromGeoJson = (
   }
   const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
   const now = new Date();
-  const timestampForDistance = (distance: number): Date => {
-    const nextRecordIndex = cumulativeDistances.findIndex(
-      (recordDistance) => recordDistance >= distance,
-    );
-    const recordIndex =
-      nextRecordIndex === -1 ? cumulativeDistances.length - 1 : nextRecordIndex;
-
-    return new Date(now.getTime() + recordIndex * 1000);
-  };
+  // Records are spaced 1s apart, so the course runs for one second per record
+  const totalElapsedTime = coordinates.length - 1;
+  const timestampForRecord = (index: number): Date =>
+    new Date(now.getTime() + index * 1000);
 
   const encoder = new Encoder();
 
@@ -60,6 +55,7 @@ export const buildFitFromGeoJson = (
     type: "course",
     manufacturer: "development",
     product: 0,
+    serialNumber: Math.floor(now.getTime() / 1000),
     timeCreated: now,
   });
 
@@ -73,6 +69,8 @@ export const buildFitFromGeoJson = (
   encoder.onMesg(Profile.MesgNum.LAP, {
     timestamp: now,
     startTime: now,
+    totalElapsedTime,
+    totalTimerTime: totalElapsedTime,
     totalDistance,
     startPositionLat: toSemicircles(coordinates[0][1]),
     startPositionLong: toSemicircles(coordinates[0][0]),
@@ -80,30 +78,67 @@ export const buildFitFromGeoJson = (
     endPositionLong: toSemicircles(coordinates[coordinates.length - 1][0]),
   });
 
-  // 4. RECORD messages — the trackpoints
+  // 4. Timer start event — required for course files; devices arm the
+  // course point alerts while this timer window is open
+  encoder.onMesg(Profile.MesgNum.EVENT, {
+    timestamp: now,
+    event: "timer",
+    eventType: "start",
+  });
+
+  // 5. RECORD messages — the trackpoints, with the COURSE_POINT messages
+  // interleaved right after the record at which the sign is reached
+  // (Garmin devices expect course points inside the timer window)
+  const coursePoints = signs
+    .filter((sign) => sign.positionOnRoute)
+    .sort(
+      (a, b) =>
+        a.positionOnRoute!.distanceAlongRoute -
+        b.positionOnRoute!.distanceAlongRoute,
+    );
+  let coursePointIndex = 0;
+  const writeCoursePoint = (recordIndex: number) => {
+    const sign = coursePoints[coursePointIndex];
+    encoder.onMesg(Profile.MesgNum.COURSE_POINT, {
+      messageIndex: coursePointIndex,
+      timestamp: timestampForRecord(recordIndex),
+      positionLat: toSemicircles(sign.positionOnRoute!.lat),
+      positionLong: toSemicircles(sign.positionOnRoute!.long),
+      distance: sign.positionOnRoute!.distanceAlongRoute,
+      name: (sign.tags.name ?? "Ortsschild").slice(0, 15),
+      type: "sprint",
+    });
+    coursePointIndex++;
+  };
+
   for (let i = 0; i < coordinates.length; i++) {
     const [lon, lat] = coordinates[i];
     encoder.onMesg(Profile.MesgNum.RECORD, {
-      timestamp: new Date(now.getTime() + i * 1000), // fake timestamps, 1s apart
+      timestamp: timestampForRecord(i), // fake timestamps, 1s apart
       positionLat: toSemicircles(lat),
       positionLong: toSemicircles(lon),
       distance: cumulativeDistances[i],
     });
+
+    while (
+      coursePointIndex < coursePoints.length &&
+      coursePoints[coursePointIndex].positionOnRoute!.distanceAlongRoute <=
+        cumulativeDistances[i]
+    ) {
+      writeCoursePoint(i);
+    }
   }
 
-  // 5. COURSE_POINT messages — one per city limit sign
-  signs.forEach((sign, index) => {
-    if (!sign.positionOnRoute) return;
+  // Flush signs that resolved beyond the last record so they are not lost
+  while (coursePointIndex < coursePoints.length) {
+    writeCoursePoint(coordinates.length - 1);
+  }
 
-    encoder.onMesg(Profile.MesgNum.COURSE_POINT, {
-      messageIndex: index,
-      timestamp: timestampForDistance(sign.positionOnRoute.distanceAlongRoute),
-      positionLat: toSemicircles(sign.positionOnRoute.lat),
-      positionLong: toSemicircles(sign.positionOnRoute.long),
-      distance: sign.positionOnRoute.distanceAlongRoute,
-      name: (sign.tags.name ?? "Ortsschild").slice(0, 15),
-      type: "sprint",
-    });
+  // 6. Timer stop event — closes the course's timing window
+  encoder.onMesg(Profile.MesgNum.EVENT, {
+    timestamp: timestampForRecord(coordinates.length - 1),
+    event: "timer",
+    eventType: "stopAll",
   });
 
   return encoder.close(); // returns Uint8Array
