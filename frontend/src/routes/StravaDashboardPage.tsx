@@ -7,6 +7,7 @@ import { CollectionStats } from "../features/strava/CollectionStats";
 import { ConnectStrava } from "../features/strava/ConnectStrava";
 import { HistoricImportCard } from "../features/strava/HistoricImportCard";
 import { useStravaDashboard } from "../features/strava/useStravaDashboard";
+import { LocalIcon } from "../components/LocalIcon";
 
 const SkeletonBlock = ({ className }: { className: string }) => (
   <div
@@ -43,7 +44,7 @@ const StravaDashboardSkeleton = () => {
       >
         {["primary", "rides", "month", "places"].map((key) => (
           <div
-            className="space-y-4 rounded-[1.5rem] bg-surface-container-low p-5"
+            className="space-y-4 rounded-[1.5rem] border border-outline-variant/45 bg-surface-container-low p-5"
             key={key}
           >
             <SkeletonBlock className="h-3 w-24" />
@@ -73,7 +74,7 @@ const StravaDashboardSkeleton = () => {
 
       <section
         aria-hidden="true"
-        className="overflow-hidden rounded-[1.75rem] bg-surface-container-low"
+        className="overflow-hidden rounded-[1.75rem] border border-outline-variant/45 bg-surface-container-low"
       >
         <div className="space-y-3 p-5 sm:p-6">
           <SkeletonBlock className="h-3 w-32" />
@@ -149,7 +150,7 @@ const StravaDashboardPage: React.FC = () => {
   if (dashboard === undefined) {
     if (hasDashboardError) {
       return (
-        <section className="mx-auto flex w-full max-w-xl flex-col items-start gap-4 rounded-[1.75rem] bg-surface-container-low p-6 sm:p-8">
+        <section className="mx-auto flex w-full max-w-xl flex-col items-start gap-4 rounded-[1.75rem] border border-outline-variant/60 bg-surface-container-low p-6 shadow-[0_1.5rem_4rem_rgb(6_15_30/0.12)] sm:p-8">
           <h1 className="font-headline text-2xl font-black text-on-surface">
             <FormattedMessage id="strava.dashboard.error.title" />
           </h1>
@@ -157,7 +158,7 @@ const StravaDashboardPage: React.FC = () => {
             <FormattedMessage id="strava.dashboard.error.description" />
           </p>
           <button
-            className="rounded-full bg-primary-container px-5 py-3 font-headline text-sm font-black text-on-surface transition-[background-color,color,transform] hover:cursor-pointer hover:scale-[1.02] hover:bg-on-surface hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface"
+            className="rounded-full bg-on-surface px-5 py-3 font-headline text-sm font-black text-surface shadow-[0_0.75rem_1.75rem_rgb(0_0_0/0.22)] transition-[box-shadow,opacity,transform] hover:cursor-pointer hover:scale-[1.02] hover:opacity-85 hover:shadow-[0_1rem_2rem_rgb(0_0_0/0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface"
             onClick={() => void reloadDashboard()}
             type="button"
           >
@@ -172,20 +173,25 @@ const StravaDashboardPage: React.FC = () => {
   if (dashboard === null) return <ConnectStrava />;
 
   return (
-    <section className="flex w-full flex-col gap-5">
+    <section className="mx-auto flex w-full max-w-[1280px] flex-col gap-5">
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="font-headline text-xs font-black tracking-[0.2em] text-secondary uppercase">
-            <FormattedMessage id="strava.dashboard.collection" />
-          </p>
-          <h1 className="font-headline text-3xl font-black tracking-tight text-on-surface sm:text-5xl">
-            {dashboard.athlete?.display_name}
-          </h1>
+        <div className="flex min-w-0 items-center gap-3.5 sm:gap-4">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-town-sign/65 bg-town-sign text-[#171716] shadow-sm sm:h-13 sm:w-13">
+            <LocalIcon name="pin" size={23} />
+          </span>
+          <div className="min-w-0">
+            <p className="font-headline text-xs font-black tracking-[0.2em] text-secondary uppercase">
+              <FormattedMessage id="strava.dashboard.collection" />
+            </p>
+            <h1 className="truncate font-headline text-3xl font-black tracking-[-0.045em] text-on-surface sm:text-5xl">
+              {dashboard.athlete?.display_name}
+            </h1>
+          </div>
         </div>
         {dashboard.athlete?.profile_image_url && (
           <img
             alt=""
-            className="h-14 w-14 rounded-full object-cover"
+            className="h-14 w-14 rounded-full border-2 border-surface-container-lowest object-cover ring-2 ring-primary/35 shadow-lg"
             src={dashboard.athlete.profile_image_url}
           />
         )}
