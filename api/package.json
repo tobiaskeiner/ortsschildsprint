@@ -22,8 +22,8 @@
   },
   "dependencies": {
     "@hono/zod-validator": "0.9.1",
-    "@supabase/supabase-js": "2.118.0",
-    "hono": "4.13.16",
+    "@supabase/supabase-js": "2.119.0",
+    "hono": "4.13.17",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -33,6 +33,6 @@
     "prettier": "3.9.10",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
-    "wrangler": "4.156.2"
+    "wrangler": "4.159.0"
   }
 }
