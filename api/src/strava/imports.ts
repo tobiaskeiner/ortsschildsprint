@@ -13,8 +13,15 @@ import {
 } from "./activities";
 import type { ActivitySummary } from "./types";
 
-const HISTORIC_RIDES_PER_BATCH = 15;
-const INITIAL_RIDES_PER_IMPORT = 20;
+// Every ride costs a Strava streams fetch plus one route-matching request per
+// 2,000 GPS coordinates, so a batch stays small enough that a scheduled
+// invocation fits the Worker's subrequest limit (50 per invocation on the
+// free plan, shared by every Strava and Supabase call in the run). A run that
+// still runs out loses the ride it was processing — completed rides stay
+// committed — and its import lock can linger until the 10-minute TTL before
+// the next schedule continues the batch.
+const HISTORIC_RIDES_PER_BATCH = 2;
+const INITIAL_RIDES_PER_IMPORT = 2;
 // One batch per pending athlete per schedule keeps every athlete's import
 // progressing instead of serializing all athletes behind the oldest request.
 // The per-athlete Strava usage stays far below Strava's rate limits.
@@ -374,7 +381,10 @@ export const runScheduledInitialImport = () =>
     importInitialRidesExclusively,
   );
 
-const RECONCILE_ATHLETES_PER_SCHEDULE = 5;
+// Each reconciled athlete syncs up to HISTORIC_RIDES_PER_BATCH recent rides,
+// so the athlete cap keeps the combined ride count of one run inside the
+// subrequest budget described above.
+const RECONCILE_ATHLETES_PER_SCHEDULE = 2;
 const RECONCILE_BUDGET_MILLISECONDS = 30 * 1_000;
 
 const reconcileAthlete = async (athleteId: number) => {
