@@ -1,4 +1,24 @@
-# Refreshing city-limit signs
+# Managing the Strava webhook subscription
+
+Strava delivers activity events only to the subscription registered for the
+application, and exactly one subscription can exist at a time. The callback
+URL must be the deployed Worker's `https://ortsschildsprint.com/api/strava/webhook`,
+and the verify token must equal the Worker's `STRAVA_WEBHOOK_VERIFY_TOKEN` so
+the verification handshake succeeds.
+
+Check the current state, create the subscription, or delete it:
+
+```sh
+pnpm --dir api strava:webhook               # list the current subscription
+pnpm --dir api strava:webhook create        # register the subscription
+pnpm --dir api strava:webhook delete <id>   # remove a subscription by id
+```
+
+`create` requires `STRAVA_WEBHOOK_VERIFY_TOKEN` in `api/.env`; override the
+callback URL with `STRAVA_WEBHOOK_CALLBACK_URL` when testing against another
+host.
+
+## Refreshing city-limit signs
 
 `refresh-city-limit-signs.mjs` replaces the live city-limit-sign dataset from
 OpenStreetMap without exposing a partially updated result.
