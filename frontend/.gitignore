@@ -54,6 +54,7 @@ playwright-report/
 .impeccable/live/deferred-svelte-component-accepts.json
 .impeccable-live.json
 .impeccable-live/
+.impeccable/review
 app/.impeccable-live/
 src/.impeccable-live/
 node_modules/.impeccable-live/
