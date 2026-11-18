@@ -54,6 +54,8 @@
   --color-tertiary-container: #e1e1de;
   --color-tertiary: #4e4e49;
   --color-town-sign: #f0cf20;
+  --color-strava-orange: #fc4c02;
+  --color-strava-orange-hover: #e34402;
 }
 
 html,
@@ -92,6 +94,8 @@ body,
   --color-tertiary-container: #292927;
   --color-tertiary: #cacac4;
   --color-town-sign: #f3d447;
+  --color-strava-orange: #fc4c02;
+  --color-strava-orange-hover: #ff6530;
   --color-dashboard-panel: #282825;
   --color-dashboard-panel-muted: #c8c8c1;
   --color-dashboard-panel-rule: rgb(255 255 255 / 0.14);

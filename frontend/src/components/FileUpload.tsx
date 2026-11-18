@@ -40,8 +40,8 @@ const FileUploader: React.FC<FileUploaderProps> = (props) => {
   }, []);
 
   return (
-    <div className="rounded-[1.75rem] bg-surface-container-lowest p-3 shadow-lg">
-      <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[1.5rem] border-2 border-dashed border-outline-variant/40 bg-surface-container-low px-4 py-4 text-center transition-all hover:border-primary-container sm:min-h-[28rem] sm:px-8 md:aspect-[4/3] md:min-h-0 md:px-10">
+    <div className="rounded-[1.75rem] bg-surface-container-lowest p-2 shadow-lg sm:p-3">
+      <div className="group relative flex min-h-[23rem] flex-col items-center justify-center overflow-hidden rounded-[1.5rem] border-2 border-dashed border-outline-variant/60 bg-surface-container-low px-5 py-10 text-center transition-[border-color,background-color] hover:border-primary hover:bg-surface-container sm:min-h-[26rem] sm:px-8 md:min-h-[30rem] md:px-10">
         <Dropzone
           maxFiles={1}
           noClick
@@ -70,7 +70,7 @@ const FileUploader: React.FC<FileUploaderProps> = (props) => {
                     </p>
                   </div>
                 ) : (
-                  <div className="relative z-10 flex flex-col items-center gap-6">
+                  <div className="relative z-10 flex flex-col items-center gap-5">
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-high text-primary sm:h-20 sm:w-20">
                       <span
                         className="material-symbols-outlined"
@@ -80,10 +80,10 @@ const FileUploader: React.FC<FileUploaderProps> = (props) => {
                       </span>
                     </div>
                     <div className="text-center">
-                      <p className="mb-1 font-headline text-lg font-bold uppercase sm:text-xl">
+                      <h2 className="font-headline text-2xl font-black tracking-[-0.02em] text-on-surface sm:text-3xl">
                         <FormattedMessage id="upload.title" />
-                      </p>
-                      <p className="text-xs font-medium uppercase tracking-widest text-secondary">
+                      </h2>
+                      <p className="mt-2 text-sm text-secondary">
                         <FormattedMessage
                           id={
                             isTouchDevice
@@ -92,29 +92,9 @@ const FileUploader: React.FC<FileUploaderProps> = (props) => {
                           }
                         />
                       </p>
-                      <div className="mt-4 flex flex-wrap justify-center gap-3">
-                        <div className="flex items-center gap-2 rounded-full bg-surface-container-high px-3 py-1">
-                          <span className="h-2 w-2 rounded-full bg-primary"></span>
-                          <span className="font-headline text-[10px] font-black">
-                            .GPX
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 rounded-full bg-surface-container-high px-3 py-1">
-                          <span className="h-2 w-2 rounded-full bg-secondary"></span>
-                          <span className="font-headline text-[10px] font-black">
-                            .TCX
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 rounded-full bg-surface-container-high px-3 py-1">
-                          <span className="h-2 w-2 rounded-full bg-tertiary"></span>
-                          <span className="font-headline text-[10px] font-black">
-                            .FIT
-                          </span>
-                        </div>
-                      </div>
                     </div>
                     <button
-                      className="w-full max-w-xs rounded-full bg-primary-container px-8 py-3 font-bold uppercase text-on-primary-container shadow-sm transition-transform hover:scale-105 hover:cursor-pointer sm:w-auto"
+                      className="w-full max-w-xs rounded-full bg-primary-container px-8 py-3 font-headline text-sm font-black text-on-primary-container transition-[background-color,transform] hover:cursor-pointer hover:bg-surface-container-highest active:scale-[0.98] sm:w-auto"
                       type="button"
                       onClick={open}
                     >

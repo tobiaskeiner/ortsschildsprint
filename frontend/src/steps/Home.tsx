@@ -16,49 +16,33 @@ const Home: React.FC = () => {
 
   return (
     <>
-      <div className="grid w-full gap-4 xl:grid-cols-5 xl:items-center xl:gap-8">
-        <div className="xl:col-span-2">
-          <div className="mb-4 grid grid-cols-[max-content_auto] grid-rows-2 items-center gap-x-3 uppercase sm:block sm:mb-8">
-            <FormattedMessage
-              id="home.title"
-              values={{
-                br: <br />,
-                sentence: (chunks) => (
-                  <h1 className="col-start-1 row-span-2 self-center pb-3 text-5xl leading-[0.85] font-black tracking-tighter text-on-surface font-headline sm:block sm:text-6xl md:text-7xl xl:text-8xl">
-                    {chunks}
-                  </h1>
-                ),
-                highlight: (chunks) => (
-                  <span className="col-start-2 row-span-2 self-center justify-self-center inline-block w-fit bg-on-surface px-2 py-2 text-5xl font-black text-primary-container font-headline sm:text-6xl md:text-7xl xl:text-8xl">
-                    {chunks}
-                  </span>
-                ),
-              }}
-            />
-          </div>
-          <p className="max-w-xl text-sm text-on-surface-variant sm:text-base xl:max-w-sm">
+      <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[minmax(20rem,0.75fr)_minmax(32rem,1.25fr)] lg:items-center lg:gap-12">
+        <div>
+          <h1 className="max-w-[11ch] text-balance font-headline text-5xl font-black leading-[0.9] tracking-[-0.04em] text-on-surface sm:text-6xl lg:text-7xl">
+            <FormattedMessage id="home.title" />
+          </h1>
+          <p className="mt-5 max-w-[38rem] text-base leading-relaxed text-on-surface-variant sm:text-lg">
             <FormattedMessage id="home.description"></FormattedMessage>
           </p>
           <a
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-surface-container-high px-4 py-2 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-highest"
+            className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-xl bg-strava-orange px-5 py-3 font-headline text-sm font-black text-white transition-[background-color,transform] hover:cursor-pointer hover:bg-strava-orange-hover active:scale-[0.98]"
             href={STRAVA_ROUTE}
           >
             <img alt="" className="h-4 w-4" src="/img/strava.png" />
             <FormattedMessage id="strava.home.link" />
           </a>
-          <div className="hidden sm:mt-8 xl:block">
-            <PrivacyStatement />
-          </div>
         </div>
-        <div className="xl:col-span-3">
+        <div>
           <FileUploader
             onParseSuccessful={() => {
               navigateToWorkflow();
             }}
           />
-          <div className="mt-5 xl:hidden">
-            <PrivacyStatement />
-          </div>
+        </div>
+      </div>
+      <div className="mx-auto mt-6 w-full max-w-6xl">
+        <div className="max-w-xl border-t border-outline-variant pt-5">
+          <PrivacyStatement />
         </div>
       </div>
       {/* Error Popup Implementation */}
