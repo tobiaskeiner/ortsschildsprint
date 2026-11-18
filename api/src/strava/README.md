@@ -44,12 +44,12 @@ Generate the encryption key with `openssl rand -base64 32`. Keep it stable:
 changing it makes previously encrypted Strava tokens unreadable and athletes
 must reconnect.
 
-`STRAVA_WEBHOOK_SIGNING_SECRET` is optional. Strava does not currently sign
-webhook deliveries and does not issue a signing secret, so deliveries without
-an `X-Strava-Signature` header are accepted and treated as untrusted triggers.
-Set this secret only when deliveries pass through a proxy that signs them (or
-once Strava ships per-event signatures): any delivery that presents the header
-must then validate against it, while unsigned deliveries keep working.
+`STRAVA_WEBHOOK_SIGNING_SECRET` is optional. Strava may send an
+`X-Strava-Signature` header without providing a signing secret. In that case,
+leave this value unset: deliveries are accepted as untrusted triggers and the
+Worker verifies their effects against the Strava API. Set the secret only when
+it is actually provided by Strava or a signing proxy; then every presented
+signature must validate.
 
 ## Strava application settings
 
@@ -72,12 +72,11 @@ https://ortsschildsprint.com/api/strava/webhook
 ```
 
 Use the same value for the subscription verify token and
-`STRAVA_WEBHOOK_VERIFY_TOKEN`. Webhook deliveries carry no per-event
-authentication (Strava does not sign them), so every delivery is treated as an
-untrusted trigger: activity data is always fetched from the Strava API with
-the athlete's stored token, and destructive events — activity deletion,
-privatization, and deauthorization — are only honored once Strava's API
-confirms them.
+`STRAVA_WEBHOOK_VERIFY_TOKEN`. Without a configured signing secret, webhook
+deliveries are treated as untrusted triggers: activity data is always fetched
+from the Strava API with the athlete's stored token, and destructive events —
+activity deletion, privatization, and deauthorization — are only honored once
+Strava's API confirms them.
 
 ## Import behavior
 
