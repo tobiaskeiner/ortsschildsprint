@@ -124,9 +124,14 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "privacy.description":
       "Deine Routendatei bleibt im Browser. Für die Suche nach Ortsschildern wird nur der benötigte Kartenausschnitt abgefragt.",
     "upload.title": "Route hochladen",
-    "upload.subtitle": "GPX-, TCX- oder FIT-Datei hier ablegen",
-    "upload.subtitle.mobile": "GPX-, TCX- oder FIT-Datei auswählen",
+    "upload.subtitle": "Datei hier ablegen",
+    "upload.subtitle.mobile": "Datei auswählen",
     "upload.button": "Route auswählen",
+    "upload.processing": "Route wird verarbeitet …",
+    "upload.cancel": "Abbrechen",
+    "error.dismiss": "Fehlermeldung schließen",
+    "error.parse.rejectedFile":
+      "Dieser Dateityp wird nicht unterstützt. Wähle eine GPX-, TCX- oder FIT-Datei.",
     "stepper.upload": "Hochladen",
     "stepper.edit": "Bearbeiten",
     "stepper.export": "Exportieren",
@@ -166,7 +171,7 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "export.tcx.description": "Abbiegehinweise für die Navigation",
     "export.fit.label": "FIT (Empfohlen)",
     "export.fit.description":
-      "Optimiert für moderne Garmin-Geräte. Empfohlen, da das Format Wegpunkte für definierte Distanzen speichern kann, was verhindern kann das Ortsschilder mehrmals angezeigt werden falls man in einer anderen Richtung daran vorbei fährt.",
+      "Optimiert für moderne Garmin-Geräte. Empfohlen, da das Format Wegpunkte für definierte Distanzen speichern kann. So wird verhindert, dass Ortsschilder mehrmals angezeigt werden, wenn man in der Gegenrichtung an ihnen vorbeifährt.",
     "export.download": "Route herunterladen",
     "error.title": "Fehler:",
     "error.parse.generic":
@@ -304,9 +309,14 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "privacy.description":
       "Your route file stays in the browser. Only the map area needed to look up nearby signs is requested.",
     "upload.title": "Upload a route",
-    "upload.subtitle": "Drop a GPX, TCX, or FIT file here",
-    "upload.subtitle.mobile": "Select a GPX, TCX, or FIT file",
+    "upload.subtitle": "Drop a file here",
+    "upload.subtitle.mobile": "Select a file",
     "upload.button": "Select route",
+    "upload.processing": "Processing route …",
+    "upload.cancel": "Cancel",
+    "error.dismiss": "Dismiss error",
+    "error.parse.rejectedFile":
+      "This file type is not supported. Choose a GPX, TCX, or FIT file.",
     "stepper.upload": "Upload",
     "stepper.edit": "Edit",
     "stepper.export": "Export",
@@ -345,7 +355,7 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "export.tcx.description": "Turn by turn navigation",
     "export.fit.label": "FIT (Recommended)",
     "export.fit.description":
-      "Optimized for modern Garmin devices and preserves multiple route passes for the same sign. Recommended because format supports Waypoints on specified distances.",
+      "Optimized for modern Garmin devices. Recommended because the format stores waypoints at defined distances, so a sign is not displayed multiple times when you pass it in the opposite direction.",
     "export.download": "Download Enriched Route",
     "error.title": "Error:",
     "error.parse.generic": "Something went wrong while parsing the file.",

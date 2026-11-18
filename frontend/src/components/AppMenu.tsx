@@ -53,11 +53,11 @@ const MenuAction: React.FC<MenuActionProps> = ({
           src={imageSrc}
         />
       ) : (
-        <span className="material-symbols-outlined text-[1.2rem] text-primary">
+        <span className="material-symbols-outlined text-xl text-primary">
           {icon}
         </span>
       )}
-      <span className="text-sm font-semibold sm:text-[0.95rem]">
+      <span className="text-sm font-semibold sm:text-base">
         <FormattedMessage id={labelId} />
       </span>
     </>
@@ -124,7 +124,7 @@ const AppMenu: React.FC<AppMenuProps> = ({
         onClick={() => setIsOpen((open) => !open)}
         type="button"
       >
-        <span className="material-symbols-outlined text-[1.35rem]">
+        <span className="material-symbols-outlined text-xl">
           {isOpen ? "close" : "menu"}
         </span>
       </button>
@@ -139,7 +139,7 @@ const AppMenu: React.FC<AppMenuProps> = ({
       {isOpen && (
         <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(calc(100vw-2rem),22rem)] overflow-hidden rounded-[1.75rem] border border-outline-variant/60 bg-surface-container-lowest shadow-2xl ring-1 ring-black/5">
           <div className="border-b border-outline-variant/40 px-5 py-5">
-            <p className="text-[0.7rem] font-headline font-black uppercase tracking-[0.24em] text-secondary">
+            <p className="text-xs font-headline font-black uppercase tracking-[0.24em] text-secondary">
               <FormattedMessage id="menu.title" />
             </p>
             <div className="mt-4 flex items-center justify-between gap-3">
