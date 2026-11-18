@@ -1,3 +1,7 @@
 /node_modules
 /slop
 /stravaApp/.env
+
+# Impeccable transient local state
+/.impeccable/config.local.json
+/.impeccable/live/
