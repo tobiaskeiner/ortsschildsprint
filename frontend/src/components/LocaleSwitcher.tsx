@@ -28,7 +28,7 @@ const LocaleSwitcher: React.FC<LocaleSwitcherProps> = ({
             key={supportedLocale}
             aria-label={intl.formatMessage({ id: localeLabelId })}
             aria-pressed={isSelected}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors hover:cursor-pointer sm:text-sm ${
+            className={`flex min-h-11 min-w-11 items-center justify-center rounded-full px-3 text-xs font-semibold transition-colors hover:cursor-pointer sm:text-sm ${
               isSelected
                 ? "bg-primary-container text-on-primary-container"
                 : "text-on-surface-variant hover:bg-surface-container"

@@ -117,7 +117,7 @@ const RootLayout: React.FC = () => {
                   <span className="sr-only">
                     <FormattedMessage id={labelId} />
                   </span>
-                  <span className="material-symbols-outlined text-[1.2rem]">
+                  <span className="material-symbols-outlined text-xl">
                     {icon}
                   </span>
                 </button>

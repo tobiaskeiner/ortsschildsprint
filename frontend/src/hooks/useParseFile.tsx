@@ -15,6 +15,7 @@ import { buildRouteIndex, findSnapCandidates } from "../utils/indexRoute";
 interface parseFileProps {
   file: File;
   onSuccess?: () => void;
+  isCancelled?: () => boolean;
 }
 
 const getParseErrorMessageId = (error: unknown) => {
@@ -70,7 +71,11 @@ export const parseFitToGeoJson = (
 const useParseFile = () => {
   const geoJsonContext = use(GeoJsonContext);
 
-  const parseFile = async ({ file, onSuccess }: parseFileProps) => {
+  const parseFile = async ({
+    file,
+    onSuccess,
+    isCancelled,
+  }: parseFileProps) => {
     geoJsonContext?.reset();
     geoJsonContext?.setParseState("inProgress");
     geoJsonContext?.setParseError(null);
@@ -83,12 +88,14 @@ const useParseFile = () => {
 
       if (extension === "fit") {
         const buffer = await file.arrayBuffer();
+        if (isCancelled?.()) return;
         const { geoJson: parsedGeoJson, routeName } = parseFitToGeoJson(buffer);
         geoJsonContext?.setRouteName(routeName);
         geoJsonContext?.setGeoJson(parsedGeoJson);
         geoJson = parsedGeoJson;
       } else if (extension === "tcx") {
         const text = await file.text();
+        if (isCancelled?.()) return;
         const xml = new DOMParser().parseFromString(text, "text/xml");
         const parsedGeoJson = tcx(xml);
 
@@ -103,6 +110,7 @@ const useParseFile = () => {
         geoJson = parsedGeoJson;
       } else {
         const text = await file.text();
+        if (isCancelled?.()) return;
         const xml = new DOMParser().parseFromString(text, "text/xml");
         const parsedGeoJson = gpx(xml);
 
@@ -122,6 +130,7 @@ const useParseFile = () => {
 
       geoJsonContext?.setParseState("Done");
       geoJsonContext?.setParseError(null);
+      if (isCancelled?.()) return;
       onSuccess?.();
 
       // already fetch signs for performance
@@ -137,6 +146,7 @@ const useParseFile = () => {
         }),
       });
       const signs = (await response.json()) as SignsResponse;
+      if (isCancelled?.()) return;
 
       // transform geoJson to turf line
       const line = geoJson.features.find(
@@ -182,6 +192,7 @@ const useParseFile = () => {
         }),
       );
     } catch (error) {
+      if (isCancelled?.()) return;
       geoJsonContext?.setParseError(getParseErrorMessageId(error));
       geoJsonContext?.setParseState("Error");
     }
