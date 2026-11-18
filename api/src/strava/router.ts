@@ -312,9 +312,10 @@ export const createStravaRouter = () => {
     }),
     async (c) => {
       const rawBody = await c.req.text();
-      // Deliveries are accepted without a signature (Strava does not sign
-      // them); a presented signature must still validate. Destructive events
-      // are re-verified against the Strava API before any data is removed.
+      // Without a configured signing secret, deliveries are untrusted triggers.
+      // If a secret is configured, a presented signature must validate.
+      // Destructive events are re-verified against the Strava API before any
+      // data is removed.
       const signatureIsValid = await verifyWebhookSignature(
         c.req.header("X-Strava-Signature"),
         rawBody,
