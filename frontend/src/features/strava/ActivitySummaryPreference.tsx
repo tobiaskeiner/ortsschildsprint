@@ -19,7 +19,7 @@ export const ActivitySummaryPreference = ({
   const intl = useIntl();
 
   return (
-    <section className="flex h-full flex-col rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-low p-4 shadow-sm sm:p-5">
+    <section className="strava-operation">
       <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.9rem] bg-town-sign text-[#171716]">

@@ -48,7 +48,7 @@ export const HistoricImportCard = ({
         : intl.formatMessage({ id: "strava.history.description.notScanned" });
 
   return (
-    <section className="rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-low p-4 shadow-sm sm:p-5">
+    <section className="strava-operation">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.9rem] bg-town-sign text-[#171716]">
@@ -75,7 +75,7 @@ export const HistoricImportCard = ({
         </div>
         {!importState?.completed && (
           <button
-            className="group inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-on-surface px-4 py-2.5 font-headline text-sm font-black text-surface shadow-[0_0.65rem_1.5rem_rgb(0_0_0/0.2)] transition-[box-shadow,opacity,transform] hover:cursor-pointer hover:opacity-85 hover:shadow-[0_0.85rem_1.8rem_rgb(0_0_0/0.28)] active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+            className="group inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-on-surface px-4 py-2.5 font-headline text-sm font-black text-surface shadow-[0_0.65rem_1.5rem_rgb(0_0_0/0.2)] transition-[box-shadow,opacity,transform] hover:cursor-pointer hover:opacity-85 hover:shadow-[0_0.85rem_1.8rem_rgb(0_0_0/0.28)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface disabled:cursor-wait disabled:opacity-60"
             disabled={isImporting || recentRidesAreLoading}
             onClick={onImport}
             type="button"

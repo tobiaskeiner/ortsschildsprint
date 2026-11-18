@@ -164,6 +164,16 @@ Dark theme keeps the same hierarchy by swapping the grayscale stack to charcoal 
 
 **The Directional Type Rule.** Use the display and label roles to orient a cyclist through a task. Reserve oversized, black display type for the few moments that establish place, route, or outcome.
 
+## Voice & UI Copy
+
+Ortsschildsprint speaks in direct, task-led language. Every visible heading, label, description, and action must earn its place by naming the content, state, consequence, or next step. Headings describe the thing on screen or the decision at hand, rather than setting a mood. Supporting text adds information a rider can act on; if it only repeats the heading, omit it.
+
+Use the same product terms consistently across German and English. Actions state their outcome, such as checking older rides or adding a sign summary to an activity description. Prefer specific, verifiable wording over inspirational framing, journey metaphors, buzzwords, or invented stories.
+
+### Named Rule
+
+**The Purpose Before Poetry Rule.** A rider should understand what a panel shows and what a control changes without interpreting a slogan. If a phrase cannot explain a concrete task, state, consequence, or action, rewrite or remove it.
+
 ## Layout
 
 The app is a bounded operating canvas, centered at a 1440px maximum width beneath a fixed translucent header. Mobile starts with a single-column task flow and generous touch targets; larger layouts introduce deliberate grids rather than simply widening text.
@@ -245,3 +255,8 @@ Borders are low-contrast and functional. A dashed edge signals a file drop targe
 - **Don't** replace the tonal hierarchy with heavy borders, harsh shadows, or glossy elevation everywhere.
 - **Don't** use sharp-cornered controls for core cyclist workflows when the existing soft instrument language fits.
 - **Don't** make maps, dense route data, or connected-service panels visually louder than the decision a cyclist needs to make.
+- **Don't** use vague, aspirational, or narrative copy where a direct task, state, or consequence can be named.
+
+## Review Artifacts
+
+Screenshots in `.impeccable/review/` are local validation evidence. Do not commit or attach them to a pull request unless the requester explicitly asks for them.

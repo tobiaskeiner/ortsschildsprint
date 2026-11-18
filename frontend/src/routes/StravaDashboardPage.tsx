@@ -25,64 +25,60 @@ const StravaDashboardSkeleton = () => {
       aria-label={intl.formatMessage({
         id: "strava.dashboard.loading.label",
       })}
-      className="flex w-full flex-col gap-5"
+      className="strava-dashboard mx-auto flex w-full max-w-[1320px] flex-col gap-5"
     >
       <span className="sr-only" role="status">
         <FormattedMessage id="strava.dashboard.loading.collection" />
       </span>
-      <header className="flex items-center justify-between gap-4">
-        <div className="space-y-3">
-          <SkeletonBlock className="h-3 w-28" />
-          <SkeletonBlock className="h-10 w-52 sm:w-72" />
+      <header className="strava-dashboard-masthead">
+        <div className="flex items-center gap-3.5 sm:gap-4">
+          <SkeletonBlock className="h-12 w-12 shrink-0 rounded-2xl" />
+          <div className="space-y-2.5">
+            <SkeletonBlock className="h-9 w-48 sm:w-64" />
+            <SkeletonBlock className="h-3 w-24" />
+          </div>
         </div>
         <SkeletonBlock className="h-14 w-14 shrink-0 rounded-full" />
       </header>
 
-      <section
-        aria-hidden="true"
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-      >
-        {["primary", "rides", "month", "places"].map((key) => (
-          <div
-            className="space-y-4 rounded-[1.5rem] border border-outline-variant/45 bg-surface-container-low p-5"
-            key={key}
-          >
-            <SkeletonBlock className="h-3 w-24" />
-            <SkeletonBlock className="h-12 w-16" />
-            <SkeletonBlock className="h-4 w-full max-w-44" />
+      <div aria-hidden="true" className="strava-dashboard-stage">
+        <div className="strava-dashboard-ledger p-5 sm:p-6">
+          <SkeletonBlock className="h-16 w-28 bg-white/15" />
+          <SkeletonBlock className="mt-5 h-4 w-44 bg-white/15" />
+          <div className="mt-8 border-t border-white/15 pt-6">
+            <SkeletonBlock className="h-11 w-44 bg-white/15" />
+            <SkeletonBlock className="mt-4 h-2 w-full bg-white/15" />
           </div>
-        ))}
-      </section>
-
-      <div aria-hidden="true" className="grid gap-4 xl:grid-cols-2">
-        {["notes", "history"].map((key) => (
-          <div
-            className="flex items-center justify-between gap-4 rounded-[1.5rem] bg-surface-container-low p-4 sm:p-5"
-            key={key}
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <SkeletonBlock className="h-10 w-10 shrink-0 rounded-[0.9rem]" />
-              <div className="w-full space-y-2">
-                <SkeletonBlock className="h-4 w-28" />
-                <SkeletonBlock className="h-4 w-full max-w-64" />
-              </div>
-            </div>
-            <SkeletonBlock className="h-11 w-28 shrink-0" />
+          <div className="mt-7 grid grid-cols-2 gap-5 border-t border-white/15 pt-6">
+            <SkeletonBlock className="h-14 w-full bg-white/15" />
+            <SkeletonBlock className="h-14 w-full bg-white/15" />
           </div>
-        ))}
-      </div>
-
-      <section
-        aria-hidden="true"
-        className="overflow-hidden rounded-[1.75rem] border border-outline-variant/45 bg-surface-container-low"
-      >
-        <div className="space-y-3 p-5 sm:p-6">
-          <SkeletonBlock className="h-3 w-32" />
-          <SkeletonBlock className="h-8 w-56" />
-          <SkeletonBlock className="h-4 w-full max-w-md" />
         </div>
-        <div className="h-[22rem] animate-pulse bg-surface-container" />
-      </section>
+        <section className="strava-dashboard-map">
+          <div className="collection-map-toolbar">
+            <div className="space-y-3">
+              <SkeletonBlock className="h-8 w-52" />
+              <SkeletonBlock className="h-4 w-72 max-w-full" />
+            </div>
+            <SkeletonBlock className="h-10 w-44" />
+          </div>
+          <div className="collection-map-canvas animate-pulse bg-surface-container" />
+        </section>
+        <div className="strava-dashboard-actions">
+          {["notes", "history"].map((key) => (
+            <div className="strava-operation" key={key}>
+              <div className="flex min-w-0 items-center gap-3">
+                <SkeletonBlock className="h-10 w-10 shrink-0 rounded-xl" />
+                <div className="w-full space-y-2">
+                  <SkeletonBlock className="h-4 w-28" />
+                  <SkeletonBlock className="h-4 w-full max-w-64" />
+                </div>
+              </div>
+              <SkeletonBlock className="h-9 w-24 shrink-0" />
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 };
@@ -173,18 +169,16 @@ const StravaDashboardPage: React.FC = () => {
   if (dashboard === null) return <ConnectStrava />;
 
   return (
-    <section className="mx-auto flex w-full max-w-[1280px] flex-col gap-5">
-      <header className="flex flex-wrap items-center justify-between gap-4">
+    <section className="strava-dashboard mx-auto flex w-full max-w-[1320px] flex-col gap-5">
+      <header className="strava-dashboard-masthead">
         <div className="flex min-w-0 items-center gap-3.5 sm:gap-4">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-town-sign/65 bg-town-sign text-[#171716] shadow-sm sm:h-13 sm:w-13">
             <LocalIcon name="pin" size={23} />
           </span>
           <div className="min-w-0">
-            <p className="font-headline text-xs font-black tracking-[0.2em] text-secondary uppercase">
-              <FormattedMessage id="strava.dashboard.collection" />
-            </p>
-            <h1 className="truncate font-headline text-3xl font-black tracking-[-0.045em] text-on-surface sm:text-5xl">
-              {dashboard.athlete?.display_name}
+            <h1 className="truncate font-headline text-3xl font-black tracking-[-0.04em] text-on-surface sm:text-5xl">
+              {dashboard.athlete?.display_name ??
+                intl.formatMessage({ id: "strava.dashboard.collection" })}
             </h1>
           </div>
         </div>
@@ -197,38 +191,42 @@ const StravaDashboardPage: React.FC = () => {
         )}
       </header>
 
-      <CollectionStats
-        {...dashboard.stats}
-        asOf={dashboard.generatedAt}
-        collection={dashboard.collection}
-        signs={dashboard.signs}
-      />
-      <div className="grid gap-4 xl:grid-cols-2">
-        {dashboard.athlete && (
-          <ActivitySummaryPreference
-            appendSignSummary={
-              pendingActivitySummary ?? dashboard.athlete.append_sign_summary
-            }
-            canWriteActivities={dashboard.athlete.granted_scopes.includes(
-              "activity:write",
-            )}
-            error={preferenceError}
-            isSaving={isSavingPreference}
-            onChange={(appendSignSummary) =>
-              void updateActivitySummaryPreference(appendSignSummary)
-            }
+      <div className="strava-dashboard-stage">
+        <div className="strava-dashboard-ledger">
+          <CollectionStats
+            {...dashboard.stats}
+            asOf={dashboard.generatedAt}
+            collection={dashboard.collection}
+            signs={dashboard.signs}
           />
-        )}
-        <HistoricImportCard
-          error={importError}
-          importState={dashboard.importState}
-          isImporting={isImporting}
-          onImport={() => void importHistory()}
-          processedActivities={dashboard.stats.processedActivities}
-          totalRides={dashboard.stats.totalRides}
-        />
+        </div>
+        <CollectionMap signs={dashboard.signs} />
+        <aside className="strava-dashboard-actions">
+          {dashboard.athlete && (
+            <ActivitySummaryPreference
+              appendSignSummary={
+                pendingActivitySummary ?? dashboard.athlete.append_sign_summary
+              }
+              canWriteActivities={dashboard.athlete.granted_scopes.includes(
+                "activity:write",
+              )}
+              error={preferenceError}
+              isSaving={isSavingPreference}
+              onChange={(appendSignSummary) =>
+                void updateActivitySummaryPreference(appendSignSummary)
+              }
+            />
+          )}
+          <HistoricImportCard
+            error={importError}
+            importState={dashboard.importState}
+            isImporting={isImporting}
+            onImport={() => void importHistory()}
+            processedActivities={dashboard.stats.processedActivities}
+            totalRides={dashboard.stats.totalRides}
+          />
+        </aside>
       </div>
-      <CollectionMap signs={dashboard.signs} />
     </section>
   );
 };

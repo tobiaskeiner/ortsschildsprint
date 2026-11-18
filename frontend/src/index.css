@@ -66,6 +66,9 @@ body,
   font-family: var(--font-body);
   color: var(--color-on-surface);
   background: var(--color-surface);
+  --color-dashboard-panel: #1f1f1d;
+  --color-dashboard-panel-muted: #c9c9c3;
+  --color-dashboard-panel-rule: rgb(255 255 255 / 0.16);
 }
 
 :root[data-theme="dark"] {
@@ -89,6 +92,9 @@ body,
   --color-tertiary-container: #292927;
   --color-tertiary: #cacac4;
   --color-town-sign: #f3d447;
+  --color-dashboard-panel: #282825;
+  --color-dashboard-panel-muted: #c8c8c1;
+  --color-dashboard-panel-rule: rgb(255 255 255 / 0.14);
 }
 
 body {
@@ -102,7 +108,198 @@ body {
   color: var(--color-on-primary-container);
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-town-sign);
+  outline-offset: 3px;
+}
+
+* {
+  scrollbar-color: var(--color-outline) var(--color-surface-container-low);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid var(--color-surface-container-low);
+  border-radius: 9999px;
+  background: var(--color-outline);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--color-surface-container-low);
+}
+
 @layer components {
+  .strava-dashboard-masthead {
+    display: flex;
+    min-height: 4.25rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.25rem 0;
+  }
+
+  .strava-dashboard-stage {
+    display: grid;
+    grid-template-areas:
+      "ledger"
+      "map"
+      "actions";
+    gap: 1rem;
+  }
+
+  .strava-dashboard-ledger {
+    grid-area: ledger;
+    overflow: hidden;
+    border: 1px solid var(--color-dashboard-panel);
+    border-radius: 1.5rem;
+    background: var(--color-dashboard-panel);
+    color: #fff;
+  }
+
+  .collection-stats {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+  }
+
+  .collection-stat-primary,
+  .collection-stat-rides,
+  .collection-stat-summary {
+    padding: 1rem;
+  }
+
+  .collection-stat-primary {
+    padding-top: 1.25rem;
+  }
+
+  .collection-stat-rides,
+  .collection-stat-summary {
+    border-top: 1px solid var(--color-dashboard-panel-rule);
+  }
+
+  .collection-stat-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: auto;
+  }
+
+  .collection-stat-summary > div + div {
+    border-left: 1px solid var(--color-dashboard-panel-rule);
+    padding-left: 1rem;
+  }
+
+  .strava-dashboard-map {
+    position: relative;
+    grid-area: map;
+    overflow: hidden;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 1.5rem;
+    background: var(--color-surface-container-low);
+  }
+
+  .strava-dashboard-map--empty {
+    background: var(--color-surface-container-low);
+  }
+
+  .collection-map-toolbar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--color-outline-variant);
+    background: var(--color-surface-container-lowest);
+  }
+
+  .collection-map-canvas {
+    position: relative;
+    height: 29rem;
+  }
+
+  .strava-dashboard-actions {
+    grid-area: actions;
+    overflow: hidden;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 1.5rem;
+    background: var(--color-surface-container-low);
+  }
+
+  .strava-operation {
+    padding: 1.25rem;
+  }
+
+  .strava-operation + .strava-operation {
+    border-top: 1px solid var(--color-outline-variant);
+  }
+
+  @media (min-width: 40rem) {
+    .collection-stat-primary,
+    .collection-stat-rides,
+    .collection-stat-summary,
+    .collection-map-toolbar,
+    .strava-operation {
+      padding: 1.5rem;
+    }
+  }
+
+  @media (min-width: 80rem) {
+    .strava-dashboard-stage {
+      grid-template-areas:
+        "ledger map"
+        "actions map";
+      grid-template-columns: minmax(21rem, 0.78fr) minmax(34rem, 1.42fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      align-items: stretch;
+    }
+
+    .strava-dashboard-map {
+      min-height: 42rem;
+    }
+
+    .collection-map-toolbar {
+      position: absolute;
+      inset: 1rem 1rem auto;
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      border: 1px solid
+        color-mix(in srgb, var(--color-outline-variant) 88%, transparent);
+      border-radius: 1rem;
+      background: color-mix(
+        in srgb,
+        var(--color-surface-container-lowest) 94%,
+        transparent
+      );
+    }
+
+    .collection-map-toolbar > :first-child {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .collection-map-view-selector {
+      flex-shrink: 0;
+      flex-wrap: nowrap;
+    }
+
+    .collection-map-view-selector > button {
+      white-space: nowrap;
+    }
+
+    .collection-map-canvas {
+      position: absolute;
+      inset: 0;
+      height: auto;
+    }
+  }
+
   .strava-connect-shell {
     background:
       radial-gradient(
