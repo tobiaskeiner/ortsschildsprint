@@ -300,66 +300,13 @@ body {
     }
   }
 
-  .strava-connect-shell {
-    background:
-      radial-gradient(
-        circle at 92% 6%,
-        color-mix(in srgb, var(--color-primary) 22%, transparent),
-        transparent 28rem
-      ),
-      radial-gradient(
-        circle at 2% 100%,
-        color-mix(in srgb, var(--color-town-sign) 13%, transparent),
-        transparent 24rem
-      ),
-      var(--color-surface-container-low);
-    box-shadow: 0 2rem 5rem rgb(0 0 0 / 0.14);
-  }
-
-  .strava-connect-grid {
-    background-image:
-      linear-gradient(
-        color-mix(in srgb, var(--color-outline-variant) 34%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--color-outline-variant) 34%, transparent) 1px,
-        transparent 1px
-      );
-    background-size: 2rem 2rem;
-    mask-image: linear-gradient(to bottom right, black, transparent 72%);
-  }
-
   .strava-connect-choice {
-    border-color: color-mix(
-      in srgb,
-      var(--color-outline-variant) 72%,
-      transparent
-    );
-    background: color-mix(
-      in srgb,
-      var(--color-surface-container-lowest) 76%,
-      transparent
-    );
+    border: 1px solid var(--color-outline-variant);
+    background: var(--color-surface-container-lowest);
   }
 
   .strava-connect-choice[data-selected="true"] {
-    border-color: color-mix(in srgb, var(--color-primary) 78%, transparent);
-    background: linear-gradient(
-      135deg,
-      color-mix(
-        in srgb,
-        var(--color-primary-container) 92%,
-        var(--color-surface-container-lowest)
-      ),
-      color-mix(
-        in srgb,
-        var(--color-primary-container) 65%,
-        var(--color-surface-container-lowest)
-      )
-    );
-    box-shadow: 0 1rem 2.5rem
-      color-mix(in srgb, var(--color-primary) 15%, transparent);
+    border-color: var(--color-primary);
+    background: var(--color-primary-container);
   }
 }
