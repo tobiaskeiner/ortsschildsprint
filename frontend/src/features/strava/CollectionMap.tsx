@@ -34,34 +34,33 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
   const selectedSign = signs.find((sign) => sign.osm_id === selectedSignOsmId);
   if (!firstSign) {
     return (
-      <section className="rounded-[1.75rem] border border-outline-variant/55 bg-surface-container-low p-8 shadow-sm">
-        <p className="font-headline text-xs font-black tracking-[0.18em] text-secondary uppercase">
-          <FormattedMessage id="strava.map.title" />
-        </p>
-        <p className="mt-3 text-secondary">
-          <FormattedMessage id="strava.map.empty" />
-        </p>
+      <section className="strava-dashboard-map strava-dashboard-map--empty flex min-h-[20rem] items-end p-5 sm:p-7">
+        <div className="max-w-md">
+          <h2 className="font-headline text-2xl font-black tracking-[-0.03em] text-on-surface">
+            <FormattedMessage id="strava.map.title" />
+          </h2>
+          <p className="mt-2 text-secondary">
+            <FormattedMessage id="strava.map.empty" />
+          </p>
+        </div>
       </section>
     );
   }
 
   return (
-    <section className="overflow-hidden rounded-[1.75rem] border border-outline-variant/55 bg-surface-container-low shadow-[0_1.25rem_3rem_rgb(6_15_30/0.1)]">
-      <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
+    <section className="strava-dashboard-map">
+      <div className="collection-map-toolbar">
         <div>
-          <p className="font-headline text-xs font-black tracking-[0.18em] text-secondary uppercase">
-            <FormattedMessage id="strava.map.title" />
-          </p>
-          <h2 className="mt-2 font-headline text-2xl font-black text-on-surface">
+          <h2 className="font-headline text-2xl font-black tracking-[-0.03em] text-on-surface sm:text-3xl">
             <FormattedMessage id="strava.map.heading" />
           </h2>
-          <p className="mt-1 text-sm text-secondary">
+          <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-secondary">
             <FormattedMessage id="strava.map.description" />
           </p>
         </div>
         <div
           aria-label={intl.formatMessage({ id: "strava.map.view" })}
-          className="flex w-fit flex-wrap gap-1 rounded-[1rem] border border-outline-variant/45 bg-surface-container-high p-1"
+          className="collection-map-view-selector flex w-fit flex-wrap gap-1 rounded-[1rem] border border-outline-variant/45 bg-surface-container-high p-1"
           role="group"
         >
           {[
@@ -99,7 +98,7 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
           })}
         </div>
       </div>
-      <div className="relative h-[34rem]">
+      <div className="collection-map-canvas">
         <Map
           initialViewState={{
             longitude: firstSign.long,
@@ -198,13 +197,13 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
         </Map>
 
         {selectedSign && (
-          <div className="absolute inset-x-3 top-3 z-10 max-h-[calc(100%-1.5rem)] overflow-y-auto rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-lowest p-3.5 shadow-xl sm:inset-x-4 sm:max-h-[calc(100%-2rem)] sm:p-5 md:inset-x-auto md:right-6 md:top-6 md:w-[22rem] md:max-h-[calc(100%-3rem)] md:rounded-[1.75rem]">
+          <div className="absolute inset-x-3 top-3 z-10 max-h-[calc(100%-1.5rem)] overflow-y-auto rounded-[1rem] bg-surface-container-lowest p-3.5 shadow-[0_1.25rem_3rem_rgb(6_15_30/0.22)] sm:inset-x-4 sm:max-h-[calc(100%-2rem)] sm:p-5 md:inset-x-auto md:right-6 md:top-6 md:w-[22rem] md:max-h-[calc(100%-3rem)] md:rounded-[1.25rem]">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <h3 className="mb-1 break-words font-headline text-xl font-black leading-none tracking-tight text-on-surface uppercase sm:text-3xl">
                   {selectedSign.tags.name ?? `#${selectedSign.osm_id}`}
                 </h3>
-                <p className="font-headline text-[10px] font-bold tracking-widest text-zinc-500">
+                <p className="font-headline text-xs font-bold tracking-widest text-zinc-500">
                   <FormattedMessage id="strava.map.signId" />: #
                   {selectedSign.osm_id}
                 </p>
@@ -221,7 +220,7 @@ export const CollectionMap = ({ signs }: CollectionMapProps) => {
 
             <div className="mt-4 flex flex-col gap-3">
               <div className="flex flex-col gap-1 rounded-2xl bg-surface-container-low p-3 md:p-4">
-                <div className="mb-1 font-headline text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
+                <div className="mb-1 font-headline text-xs font-bold tracking-widest text-zinc-400 uppercase">
                   <FormattedMessage id="strava.map.coordinates" />
                 </div>
                 <div className="font-headline text-xs font-bold leading-tight">

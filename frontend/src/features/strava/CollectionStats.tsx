@@ -56,92 +56,99 @@ export const CollectionStats = ({
     : intl.formatMessage({ id: "strava.stats.uniqueSign" });
 
   return (
-    <section aria-label={intl.formatMessage({ id: "strava.stats.label" })}>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[1.5rem] bg-gradient-to-br from-[#151515] via-[#2a2a2a] to-[#5a5a5a] p-5 text-white shadow-[0_1.25rem_2.75rem_rgb(0_0_0/0.22)]">
-          <p className="font-headline text-xs font-bold tracking-widest text-town-sign uppercase">
+    <section
+      aria-label={intl.formatMessage({ id: "strava.stats.label" })}
+      className="collection-stats"
+    >
+      <div className="collection-stat-primary">
+        <p className="font-headline text-5xl font-black leading-none tracking-[-0.04em] tabular-nums sm:text-7xl">
+          {intl.formatNumber(collectedSigns)}
+        </p>
+        <div className="mt-2 sm:mt-3">
+          <p className="font-headline text-xs font-black tracking-[0.12em] text-town-sign uppercase sm:text-sm">
             <FormattedMessage id="strava.stats.signsCollected" />
           </p>
-          <p className="mt-2 font-headline text-5xl font-black">
-            {intl.formatNumber(collectedSigns)}
-          </p>
-          <p className="mt-3 text-sm text-white/75">
+          <p className="mt-1.5 hidden max-w-[26rem] text-sm leading-relaxed text-white/72 sm:block">
             {signsPerRideDescription}
           </p>
         </div>
-        <div className="rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-lowest p-5 text-on-surface shadow-sm">
-          <p className="font-headline text-xs font-bold tracking-widest text-secondary uppercase">
-            <FormattedMessage id="strava.stats.ridesChecked" />
-          </p>
-          <p className="mt-2 flex flex-wrap items-baseline gap-x-2 font-headline font-black">
-            <span className="text-5xl">{intl.formatNumber(checkedRides)}</span>
-            {hasRideTotal && (
-              <span className="text-2xl">
-                / {intl.formatNumber(totalRides)}
-              </span>
-            )}
-          </p>
-          <div className="mt-4">
-            <div
-              aria-label={
-                hasRideTotal
-                  ? intl.formatMessage(
-                      { id: "strava.stats.ridesCheckedProgress" },
-                      { checked: checkedRides, total: totalRides },
-                    )
-                  : intl.formatMessage({ id: "strava.stats.loadingRideCount" })
-              }
-              aria-valuemax={hasRideTotal ? totalRides : undefined}
-              aria-valuemin={hasRideTotal ? 0 : undefined}
-              aria-valuenow={hasRideTotal ? checkedRides : undefined}
-              className="h-2 overflow-hidden rounded-full bg-surface-container-high"
-              role="progressbar"
-            >
-              <span
-                className={`block h-full rounded-full bg-town-sign ${
-                  hasRideTotal
-                    ? "transition-[width] duration-500"
-                    : "animate-pulse"
-                }`}
-                style={{ width: `${rideProgress}%` }}
-              />
-            </div>
-            <p className="mt-3 text-sm text-secondary">
-              {hasRideTotal
-                ? totalRides === 0
-                  ? intl.formatMessage({ id: "strava.stats.noOutdoorRides" })
-                  : intl.formatMessage(
-                      { id: "strava.stats.ridesCheckedPercent" },
-                      {
-                        progress: intl.formatNumber(rideProgress / 100, {
-                          maximumFractionDigits: 0,
-                          style: "percent",
-                        }),
-                      },
-                    )
-                : intl.formatMessage({ id: "strava.stats.countingRides" })}
+      </div>
+
+      <div className="collection-stat-rides">
+        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+          <div>
+            <p className="font-headline text-3xl font-black leading-none tracking-[-0.035em] tabular-nums sm:text-5xl">
+              {intl.formatNumber(checkedRides)}
+              {hasRideTotal && (
+                <span className="ml-1.5 text-lg text-white/60 sm:text-2xl">
+                  / {intl.formatNumber(totalRides)}
+                </span>
+              )}
+            </p>
+            <p className="mt-1.5 font-headline text-xs font-black tracking-[0.12em] text-white/72 uppercase sm:mt-2">
+              <FormattedMessage id="strava.stats.ridesChecked" />
             </p>
           </div>
-        </div>
-        <div className="rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-lowest p-5 text-on-surface shadow-sm">
-          <p className="font-headline text-xs font-bold tracking-widest text-secondary uppercase">
-            <FormattedMessage id="strava.stats.lastThirtyDays" />
+          <p className="hidden max-w-[15rem] text-sm leading-relaxed text-white/64 sm:block">
+            {hasRideTotal
+              ? totalRides === 0
+                ? intl.formatMessage({ id: "strava.stats.noOutdoorRides" })
+                : intl.formatMessage(
+                    { id: "strava.stats.ridesCheckedPercent" },
+                    {
+                      progress: intl.formatNumber(rideProgress / 100, {
+                        maximumFractionDigits: 0,
+                        style: "percent",
+                      }),
+                    },
+                  )
+              : intl.formatMessage({ id: "strava.stats.countingRides" })}
           </p>
-          <p className="mt-2 font-headline text-5xl font-black">
+        </div>
+        <div
+          aria-label={
+            hasRideTotal
+              ? intl.formatMessage(
+                  { id: "strava.stats.ridesCheckedProgress" },
+                  { checked: checkedRides, total: totalRides },
+                )
+              : intl.formatMessage({ id: "strava.stats.loadingRideCount" })
+          }
+          aria-valuemax={hasRideTotal ? totalRides : undefined}
+          aria-valuemin={hasRideTotal ? 0 : undefined}
+          aria-valuenow={hasRideTotal ? checkedRides : undefined}
+          className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/16 sm:mt-5 sm:h-2"
+          role="progressbar"
+        >
+          <span
+            className={`block h-full rounded-full bg-town-sign ${
+              hasRideTotal ? "transition-[width] duration-500" : "animate-pulse"
+            }`}
+            style={{ width: `${rideProgress}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="collection-stat-summary">
+        <div>
+          <p className="font-headline text-3xl font-black leading-none tracking-[-0.035em] tabular-nums sm:text-4xl">
             {intl.formatNumber(signsThisMonth)}
           </p>
-          <p className="mt-3 text-sm text-secondary">
+          <p className="mt-1.5 font-headline text-xs font-black tracking-[0.12em] text-white/72 uppercase sm:mt-2">
+            <FormattedMessage id="strava.stats.lastThirtyDays" />
+          </p>
+          <p className="mt-1.5 hidden text-sm leading-relaxed text-white/58 sm:block">
             <FormattedMessage id="strava.stats.signsThisMonth" />
           </p>
         </div>
-        <div className="rounded-[1.5rem] border border-outline-variant/55 bg-surface-container-lowest p-5 text-on-surface shadow-sm">
-          <p className="font-headline text-xs font-bold tracking-widest text-secondary uppercase">
-            <FormattedMessage id="strava.stats.namedPlaces" />
-          </p>
-          <p className="mt-2 font-headline text-5xl font-black">
+        <div>
+          <p className="font-headline text-3xl font-black leading-none tracking-[-0.035em] tabular-nums sm:text-4xl">
             {intl.formatNumber(namedPlaces)}
           </p>
-          <p className="mt-3 text-sm text-secondary">
+          <p className="mt-1.5 font-headline text-xs font-black tracking-[0.12em] text-white/72 uppercase sm:mt-2">
+            <FormattedMessage id="strava.stats.namedPlaces" />
+          </p>
+          <p className="mt-1.5 hidden text-sm leading-relaxed text-white/58 sm:block">
             <FormattedMessage id="strava.stats.distinctNames" />
           </p>
         </div>
