@@ -54,3 +54,4 @@ The optional Strava workflow is a deployed, server-side integration. It connects
 3. Make results useful where cyclists need them: their chosen navigation-file format and, when explicitly connected, their ride history.
 4. Keep the richer connected-rides experience clearly opt-in and transparent about its server-side processing and stored data.
 5. Support riders in German and English without making either language a second-class workflow.
+6. Use plain, purposeful interface language: every label, heading, description, and action tells riders what they see, what will happen, or why it matters. Avoid aspirational slogans and invented narratives.
