@@ -15,6 +15,12 @@
         "value": "material symbols outlined",
         "createdAt": "2026-11-18T10:56:09.313Z",
         "reason": "Pre-existing icon font in src/index.css, used by the shared LocalIcon system across the existing product; not a content typography addition."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "24px",
+        "createdAt": "2026-11-18T12:23:08.830Z",
+        "reason": "Existing Material Symbols icon font baseline used by the established LocalIcon system; this is an icon glyph size, not product text typography."
       }
     ]
   }

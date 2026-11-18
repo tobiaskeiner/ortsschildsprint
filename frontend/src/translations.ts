@@ -32,20 +32,20 @@ export const messages: Record<AppLocale, Record<string, string>> = {
       "Aktivitäten konnten nicht importiert werden.",
     "strava.error.savePreference":
       "Deine Einstellung konnte nicht gespeichert werden.",
-    "strava.connect.eyebrow": "Ortschildsprint × Strava",
-    "strava.connect.title": "Sammle Ortseinfahrtsschilder auf jeder Fahrt.",
+    "strava.connect.title": "Strava verbinden",
     "strava.connect.description":
-      "Verbinde Strava, um die Schilder zu finden, an denen du nach jeder Fahrt im Freien vorbeikommst. Wähle, ob neue Entdeckungen auch in der Aktivitätsbeschreibung erscheinen sollen.",
-    "strava.connect.activityDescriptions": "Aktivitätsbeschreibungen",
-    "strava.connect.permissionHint":
-      "Du kannst dies später ändern, wenn deine Strava-Berechtigungen es zulassen.",
+      "Prüfe deine Fahrten im Freien auf Ortsschilder und sammle sie hier.",
+    "strava.connect.summary.question":
+      "Zusammenfassung zu Aktivitäten hinzufügen?",
+    "strava.connect.summary.hint": "Du kannst dies später ändern.",
     "strava.connect.addSummary": "Zusammenfassung zu Schildern hinzufügen",
     "strava.connect.addSummary.description":
-      "Füge nur dann eine kurze Ortschildsprint-Notiz hinzu, wenn bei einer Fahrt neue Schilder gefunden werden.",
+      "Neue Schilder werden als kurze Notiz zur Aktivität hinzugefügt.",
     "strava.connect.keepDescriptions": "Beschreibungen unverändert lassen",
     "strava.connect.keepDescriptions.description":
-      "Verfolge deine Sammlung hier privat, ohne eine Strava-Aktivität zu ändern.",
-    "strava.connect.action": "Mit Strava verbinden",
+      "Deine Sammlung wird aktualisiert; Aktivitätsbeschreibungen bleiben unverändert.",
+    "strava.connect.action": "Weiter zu Strava",
+    "strava.connect.handoff": "Du bestätigst den Zugriff bei Strava.",
     "strava.preference.title": "Aktivitätsbeschreibungen",
     "strava.preference.enabled.description":
       "Neue Schilder einer Fahrt werden zur Aktivitätsbeschreibung hinzugefügt.",
@@ -215,20 +215,19 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "strava.dashboard.collection": "Your collection",
     "strava.error.importActivities": "Could not import activities.",
     "strava.error.savePreference": "Could not save your preference.",
-    "strava.connect.eyebrow": "Ortschildsprint × Strava",
-    "strava.connect.title": "Collect city limit signs on every ride.",
+    "strava.connect.title": "Connect Strava",
     "strava.connect.description":
-      "Connect Strava to find the signs you pass after each outdoor ride. Choose whether new discoveries should also appear in the activity description.",
-    "strava.connect.activityDescriptions": "Activity descriptions",
-    "strava.connect.permissionHint":
-      "You can change this later whenever your Strava permissions allow it.",
+      "Check your outdoor rides for city limit signs and collect them here.",
+    "strava.connect.summary.question": "Add sign summaries to activities?",
+    "strava.connect.summary.hint": "You can change this later.",
     "strava.connect.addSummary": "Add a sign summary",
     "strava.connect.addSummary.description":
-      "Add a short Ortschildsprint note only when a ride finds new signs.",
+      "Add a short note when a ride finds new signs.",
     "strava.connect.keepDescriptions": "Keep descriptions untouched",
     "strava.connect.keepDescriptions.description":
-      "Track your collection privately here without changing any Strava activity.",
-    "strava.connect.action": "Connect with Strava",
+      "Your collection updates here; activity descriptions stay unchanged.",
+    "strava.connect.action": "Continue to Strava",
+    "strava.connect.handoff": "You’ll confirm access on Strava.",
     "strava.preference.title": "Activity descriptions",
     "strava.preference.enabled.description":
       "New signs from a ride are added to its Strava activity description.",
