@@ -97,7 +97,7 @@ export const ConnectStrava = () => {
             </div>
           </fieldset>
           <a
-            className="group mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-[1rem] bg-[#fc4c02] px-5 py-3 font-headline text-sm font-black text-white transition-[background-color,transform] hover:cursor-pointer hover:bg-[#e34402] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fc4c02]"
+            className="group mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-[1rem] bg-strava-orange px-5 py-3 font-headline text-sm font-black text-white transition-[background-color,transform] hover:cursor-pointer hover:bg-strava-orange-hover active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-strava-orange"
             href={`/api/strava/connect?activity_summary=${appendSignSummary ? "1" : "0"}`}
           >
             <FormattedMessage id="strava.connect.action" />
