@@ -5,9 +5,12 @@
   "workers_dev": false,
   "compatibility_date": "2026-04-23",
   "triggers": {
-    // Every 5 minutes so import batches and webhook retries progress
-    // continuously instead of draining one batch per hour.
-    "crons": ["*/5 * * * *"],
+    // Every minute: each scheduled invocation receives its own subrequest
+    // budget, so import batches and webhook retries progress continuously
+    // and a backlog drains at the pace Strava's rate limits allow instead of
+    // the pace of the schedule. The batches pace themselves against the
+    // usage Strava reports with every response.
+    "crons": ["* * * * *"],
   },
   "observability": {
     "enabled": true,

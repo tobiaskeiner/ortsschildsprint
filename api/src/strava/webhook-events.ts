@@ -1,4 +1,5 @@
 import { supabase } from "../supabase";
+import { type SubrequestBudget } from "../subrequests";
 import {
   isActivityUnavailable,
   processActivity,
@@ -7,6 +8,7 @@ import {
 import {
   isAthleteAuthorized,
   rateLimitPauseUntil,
+  remainingStravaRequestsForBackgroundWork,
   StravaAthleteNotConnectedError,
   StravaRateLimitError,
 } from "./client";
@@ -14,6 +16,11 @@ import { withStravaImportLock } from "./imports";
 import type { StravaWebhookEvent } from "./types";
 
 const RETRY_EVENTS_PER_SCHEDULE = 3;
+// An event retries with up to a dozen subrequests — claiming, locking, the
+// Strava verification and processing requests, and the completion update —
+// and two Strava requests: the activity fetch and its route stream.
+const SUBREQUESTS_TO_RETRY_EVENT = 10;
+const STRAVA_READS_TO_RETRY_EVENT = 2;
 const PROCESSED_EVENT_RETENTION_MILLISECONDS = 30 * 24 * 60 * 60 * 1_000;
 const encoder = new TextEncoder();
 
@@ -232,7 +239,9 @@ export const recordStravaWebhookEvent = async (event: StravaWebhookEvent) => {
   return existingEvent.id as number;
 };
 
-export const runScheduledWebhookRetries = async (): Promise<number | null> => {
+export const runScheduledWebhookRetries = async (
+  subrequestBudget: SubrequestBudget,
+): Promise<number | null> => {
   const { data, error } = await supabase
     .from("strava_webhook_events")
     .select("id")
@@ -243,6 +252,15 @@ export const runScheduledWebhookRetries = async (): Promise<number | null> => {
   if (error) throw new Error(error.message);
 
   for (const event of data ?? []) {
+    // Retries are deferred work, so they wait for budgets that fit a full
+    // attempt instead of starting what the platform would cut short. Events
+    // delivered live are processed by the request handler without these
+    // bounds.
+    if (!subrequestBudget.canSpend(SUBREQUESTS_TO_RETRY_EVENT)) break;
+    if (
+      remainingStravaRequestsForBackgroundWork() < STRAVA_READS_TO_RETRY_EVENT
+    )
+      break;
     try {
       await processStravaWebhookEvent(event.id as number);
     } catch (error) {

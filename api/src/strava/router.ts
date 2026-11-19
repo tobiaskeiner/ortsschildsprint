@@ -9,6 +9,7 @@ import {
   canRequestStravaWebhook,
   getClientAddress,
 } from "../rate-limit";
+import { startSubrequestBudget, countedFetch } from "../subrequests";
 import { supabase } from "../supabase";
 import {
   createOAuthState,
@@ -126,7 +127,7 @@ export const createStravaRouter = () => {
       return c.redirect(`${dashboardPath}?connection=denied`);
     }
 
-    const response = await fetch("https://www.strava.com/oauth/token", {
+    const response = await countedFetch("https://www.strava.com/oauth/token", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
@@ -189,9 +190,13 @@ export const createStravaRouter = () => {
     });
     if (!existingAthlete) {
       await ensureInitialImportState(athleteId);
+      // The budget spans the whole callback handling, so the first import
+      // processes as many rides as this invocation can safely afford and
+      // the scheduler continues the rest in the background.
+      const subrequestBudget = startSubrequestBudget();
       c.executionCtx.waitUntil(
-        importInitialRidesExclusively(athleteId).catch((error) =>
-          console.error("Initial Strava import failed", error),
+        importInitialRidesExclusively(athleteId, subrequestBudget).catch(
+          (error) => console.error("Initial Strava import failed", error),
         ),
       );
     }
@@ -281,8 +286,14 @@ export const createStravaRouter = () => {
       });
     if (requestError) throw new Error(requestError.message);
 
+    // The budget spans the whole request, including its session and state
+    // queries, so the batch fits within this invocation's subrequest limit
+    // even though it runs many requests per ride.
+    const subrequestBudget = startSubrequestBudget();
     try {
-      return c.json(await importHistoricBatchExclusively(athleteId));
+      return c.json(
+        await importHistoricBatchExclusively(athleteId, subrequestBudget),
+      );
     } catch (error) {
       if (
         error instanceof StravaReconnectRequiredError ||
