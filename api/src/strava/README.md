@@ -80,21 +80,28 @@ Strava's API confirms them.
 
 ## Import behavior
 
-- A first connection analyses the latest 20 eligible outdoor rides in the
-  background. It never changes historic activity descriptions. If that work is
-  interrupted, the deployed scheduler resumes it every five minutes.
-- Dashboard imports process up to 15 eligible outdoor rides per batch. A
-  deployed Worker continues one import batch per pending athlete every five
-  minutes, up to 25 athletes per run. Only one batch for an athlete can run at
+- A first connection analyses the latest 10 eligible outdoor rides in the
+  background. It never changes historic activity descriptions. If that work
+  is interrupted, the deployed scheduler resumes it every minute.
+- Dashboard imports process up to 10 eligible outdoor rides per batch. A
+  deployed Worker continues one import batch per pending athlete every
+  minute, up to 25 athletes per run. Only one batch for an athlete can run at
   a time; another request receives a `409` and can be retried shortly.
 - Each batch first reconciles the newest rides before walking the historic
   cursor, so a ride whose webhook delivery was missed (Strava retries only
   three times) is imported by the next batch or Import request. The historic
-  cursor is untouched by this reconciliation.
-- The scheduler also reconciles a few connected athletes per run, round-robin,
-  so a missed webhook delivery is recovered for every connected athlete
-  without an Import request — including athletes whose historic import already
-  completed.
+  cursor is untouched by this reconciliation; the walk continues with
+  whatever batch capacity remains.
+- The whole pipeline is budget-aware, on two axes. Strava's rate limits —
+  200 read requests per 15 minutes and 2,000 per day, 400 and 4,000 overall —
+  are tracked from the usage headers every Strava response carries, so
+  deferred work only runs while those windows have headroom above what live
+  webhook processing needs, and never has to discover a limit by hitting it.
+  And each Worker invocation plans to stay inside its subrequest limit
+  (50 per invocation on the free plan, shared by every Strava and Supabase
+  call of the run): a batch whose budgets run low stops cleanly between
+  rides, moves its cursor past exactly the rides it fully processed, and the
+  next schedule continues.
 - A historic batch uses one activity-listing request, then one route-stream
   request for each previously unprocessed ride. The listing already supplies
   the metadata needed to filter historic rides, and one access token is reused
@@ -114,6 +121,11 @@ Strava's API confirms them.
 - Eligible rides include road, e-bike, mountain, e-mountain, gravel,
   handcycle, and velomobile activities. Trainer, manual, and virtual rides are
   excluded, as are activities marked private in Strava.
+- The scheduler also re-reconciles every connected athlete whose last sweep is
+  older than two hours — oldest first, up to four athletes per run — so a
+  missed webhook delivery is recovered for every connected athlete without an
+  Import request, including athletes whose historic import already completed.
+  Roughly one list request per athlete per sweep keeps this safety net cheap.
 - When Strava reports that an activity was deleted or made private, its
   activity-derived collection data is removed — but only after Strava's API
   confirms the report, since webhook deliveries are unauthenticated. If an

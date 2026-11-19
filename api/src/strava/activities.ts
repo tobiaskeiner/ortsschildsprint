@@ -1,5 +1,9 @@
 import { supabase } from "../supabase";
 import {
+  type SubrequestBudget,
+  SubrequestBudgetExhaustedError,
+} from "../subrequests";
+import {
   getAccessToken,
   stravaApi,
   stravaApiForAthlete,
@@ -26,6 +30,13 @@ interface ProcessActivityOptions {
   skipProcessedCheck?: boolean;
   retryWhenStreamUnavailable?: boolean;
   updateDescription?: boolean;
+  /**
+   * When provided, planned requests are checked against the invoking run's
+   * subrequest budget before they are spent, so a ride is never cut off by the
+   * platform mid-processing: the ride stays uncommitted and is retried by the
+   * next schedule instead.
+   */
+  subrequestBudget?: SubrequestBudget;
 }
 
 interface ActivityCompletion {
@@ -57,7 +68,10 @@ const appendCollectionSummary = (
   return `${(description ?? "").replace(/\n*🪧 Ortschildsprint:.*$/s, "").trimEnd()}\n\n${summary}`;
 };
 
-const getMatchedOsmIds = async (coordinates: unknown[]) => {
+const getMatchedOsmIds = async (
+  coordinates: unknown[],
+  subrequestBudget?: SubrequestBudget,
+) => {
   const matchedOsmIds = new Set<number>();
 
   for (
@@ -65,6 +79,11 @@ const getMatchedOsmIds = async (coordinates: unknown[]) => {
     start < coordinates.length - 1;
     start += ROUTE_COORDINATES_PER_MATCH - 1
   ) {
+    if (subrequestBudget && !subrequestBudget.canSpend(1)) {
+      // Sign matching must never complete partially: a miss here would
+      // silently drop signs that lie along the rest of the route.
+      throw new SubrequestBudgetExhaustedError();
+    }
     const routeChunk = coordinates.slice(
       start,
       start + ROUTE_COORDINATES_PER_MATCH,
@@ -329,7 +348,13 @@ export const processActivity = async (
     return true;
   }
 
-  const matchedOsmIds = await getMatchedOsmIds(streams.latlng.data);
+  const matchedOsmIds = await getMatchedOsmIds(
+    streams.latlng.data,
+    options.subrequestBudget,
+  );
+  if (options.subrequestBudget && !options.subrequestBudget.canSpend(1)) {
+    throw new SubrequestBudgetExhaustedError();
+  }
   const completion = await completeActivity(
     athleteId,
     activityId,

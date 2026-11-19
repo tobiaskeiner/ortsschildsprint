@@ -9,6 +9,10 @@ import {
   pruneExpiredSignsRateLimitWindows,
 } from "./rate-limit";
 import {
+  startSubrequestBudget,
+  usableSubrequestsPerInvocation,
+} from "./subrequests";
+import {
   runScheduledHistoricImport,
   runScheduledInitialImport,
   runScheduledReconciliation,
@@ -24,6 +28,14 @@ import { supabase } from "./supabase";
 const app = new Hono();
 
 const SIGNS_REQUEST_BODY_MAX_BYTES = 4 * 1024;
+// Pruning only reclaims expired rows; running it on every minute-scheduled
+// invocation would spend subrequests that scheduled Strava batches can use
+// better. The isolation-shared timestamp keeps it periodic per isolate.
+const PRUNE_INTERVAL_MILLISECONDS = 10 * 60 * 1_000;
+// Each scheduled Strava task starts with a small database query; when even
+// that does not fit, the task waits for the next schedule.
+const SUBREQUESTS_TO_START_TASK = 2;
+let lastPrunedAt = 0;
 
 const runScheduledTask = async <Result>(
   name: string,
@@ -94,6 +106,12 @@ export default {
   ) {
     ctx.waitUntil(
       (async () => {
+        // Every task of this invocation shares its subrequest budget, so each
+        // one stops before the platform would cut it off and the invocation
+        // stays a cheap, reliable increment of the import pipeline.
+        const subrequestBudget = startSubrequestBudget(
+          usableSubrequestsPerInvocation(),
+        );
         // Strava's rate limits are shared by every task that calls its API, so
         // a rate-limited task pauses the remaining Strava work in this run.
         let stravaPauseUntil: number | null = null;
@@ -103,31 +121,40 @@ export default {
         ) => {
           if (stravaPauseUntil !== null && Date.now() < stravaPauseUntil)
             return;
+          if (!subrequestBudget.canSpend(SUBREQUESTS_TO_START_TASK)) return;
           const pauseUntil = await runScheduledTask(name, task);
           if (pauseUntil) stravaPauseUntil = pauseUntil;
         };
-        await runStravaTask(
-          "historic Strava import",
-          runScheduledHistoricImport,
+        await runStravaTask("historic Strava import", () =>
+          runScheduledHistoricImport(subrequestBudget),
         );
-        await runStravaTask("initial Strava import", runScheduledInitialImport);
-        await runStravaTask(
-          "Strava webhook retries",
-          runScheduledWebhookRetries,
+        await runStravaTask("initial Strava import", () =>
+          runScheduledInitialImport(subrequestBudget),
         );
-        await runStravaTask(
-          "Strava reconciliation",
-          runScheduledReconciliation,
+        await runStravaTask("Strava webhook retries", () =>
+          runScheduledWebhookRetries(subrequestBudget),
         );
-        await runScheduledTask(
-          "expired sign rate-limit windows",
-          pruneExpiredSignsRateLimitWindows,
+        await runStravaTask("Strava reconciliation", () =>
+          runScheduledReconciliation(subrequestBudget),
         );
-        await runScheduledTask("expired Strava sessions", pruneExpiredSessions);
-        await runScheduledTask(
-          "processed Strava webhook events",
-          pruneProcessedWebhookEvents,
-        );
+        if (
+          Date.now() - lastPrunedAt >= PRUNE_INTERVAL_MILLISECONDS &&
+          subrequestBudget.canSpend(SUBREQUESTS_TO_START_TASK * 3)
+        ) {
+          lastPrunedAt = Date.now();
+          await runScheduledTask(
+            "expired sign rate-limit windows",
+            pruneExpiredSignsRateLimitWindows,
+          );
+          await runScheduledTask(
+            "expired Strava sessions",
+            pruneExpiredSessions,
+          );
+          await runScheduledTask(
+            "processed Strava webhook events",
+            pruneProcessedWebhookEvents,
+          );
+        }
       })(),
     );
   },
