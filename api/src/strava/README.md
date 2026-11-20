@@ -100,8 +100,11 @@ Strava's API confirms them.
   And each Worker invocation plans to stay inside its subrequest limit
   (50 per invocation on the free plan, shared by every Strava and Supabase
   call of the run): a batch whose budgets run low stops cleanly between
-  rides, moves its cursor past exactly the rides it fully processed, and the
-  next schedule continues.
+  rides, moves its cursor past every ride it made sure of — the rides it
+  processed and the ones it skipped because they were already processed —
+  and the next schedule continues. Advancing over already-processed rides
+  keeps an import that meets them ahead of its cursor moving forward
+  instead of wedging the cursor in place.
 - A historic batch uses one activity-listing request, then one route-stream
   request for each previously unprocessed ride. The listing already supplies
   the metadata needed to filter historic rides, and one access token is reused

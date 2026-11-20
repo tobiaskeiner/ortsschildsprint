@@ -188,25 +188,46 @@ interface ProcessActivitiesOptions {
   subrequestBudget?: SubrequestBudget;
 }
 
+interface ProcessActivitiesResult {
+  /**
+   * The rides this call processed now: worth a batch's capacity and counted by
+   * callers that report per-run progress.
+   */
+  processedRides: ActivitySummary[];
+  /**
+   * Every ride this call made sure of: the ones it processed plus the ones it
+   * skipped because they were already processed. A caller may move its cursor
+   * past exactly these rides — the already-processed ones must never hold the
+   * cursor back, or an import that meets processed rides ahead of its cursor
+   * can stall on them forever.
+   */
+  coveredRides: ActivitySummary[];
+}
+
 /**
  * Processes the activities a batch has listed, pausing before a ride whose
- * budgets cannot cover it. It returns only the rides it fully processed, so a
- * caller moves its cursor past exactly those rides and the next schedule
- * picks up where this one stopped.
+ * budgets cannot cover it. It returns which rides it processed and which it
+ * made sure of in total, so a caller moves its cursor past everything that
+ * needs no further work and the next schedule picks up where this one
+ * stopped.
  */
 const processActivities = async (
   athleteId: number,
   activities: ActivitySummary[],
   accessToken: string,
   { maxRides, subrequestBudget }: ProcessActivitiesOptions,
-) => {
+): Promise<ProcessActivitiesResult> => {
   const processedActivityIds = await getUnprocessedActivityIds(
     athleteId,
     activities.map((activity) => activity.id),
   );
   const processedRides: ActivitySummary[] = [];
+  const coveredRides: ActivitySummary[] = [];
   for (const activity of activities) {
-    if (processedActivityIds.has(activity.id)) continue;
+    if (processedActivityIds.has(activity.id)) {
+      coveredRides.push(activity);
+      continue;
+    }
     if (processedRides.length >= maxRides) break;
     // Each ride costs one Strava read and, typically, a stream, route-match,
     // and completion request; longer routes cost more sign-matching requests.
@@ -224,12 +245,13 @@ const processActivities = async (
         subrequestBudget,
       });
       processedRides.push(activity);
+      coveredRides.push(activity);
     } catch (error) {
       if (error instanceof SubrequestBudgetExhaustedError) break;
       throw error;
     }
   }
-  return processedRides;
+  return { processedRides, coveredRides };
 };
 
 /**
@@ -244,7 +266,7 @@ const syncRecentRides = async (
   { maxRides, subrequestBudget }: ProcessActivitiesOptions,
 ) => {
   const activities = await getActivities(accessToken);
-  const processedRides = await processActivities(
+  const { processedRides } = await processActivities(
     athleteId,
     activities.filter(isOutdoorRide),
     accessToken,
@@ -292,26 +314,29 @@ const importHistoricBatch = async (
       activities,
       remainingRides,
     );
-    const historicProcessedRides = await processActivities(
-      athleteId,
-      rides,
-      accessToken,
-      { maxRides: remainingRides, subrequestBudget },
-    );
+    const {
+      processedRides: historicProcessedRides,
+      coveredRides: historicCoveredRides,
+    } = await processActivities(athleteId, rides, accessToken, {
+      maxRides: remainingRides,
+      subrequestBudget,
+    });
     processedRides.push(...historicProcessedRides);
 
-    // The cursor only advances past rides this run fully processed; rides it
-    // could not afford stay ahead of the cursor for the next schedule. When
-    // nothing held the page back, ineligible activities were scanned as a
-    // whole, and a short page with no pending eligible rides ends the walk.
-    const partiallyProcessed = historicProcessedRides.length < rides.length;
+    // The cursor only advances past rides this run made sure of: rides it
+    // processed plus ones already processed it skipped. Rides it could not
+    // afford stay ahead of the cursor for the next schedule. When the batch
+    // covered everything it selected, ineligible activities were scanned as a
+    // whole, and a short page with no pending eligible rides ends the walk —
+    // already-processed rides must not mask older unprocessed ones.
+    const coveredWholeBatch = historicCoveredRides.length >= rides.length;
     cursorActivity =
-      historicProcessedRides.at(-1) ??
-      (partiallyProcessed || hasMoreEligibleRides
+      historicCoveredRides.at(-1) ??
+      (!coveredWholeBatch || hasMoreEligibleRides
         ? undefined
         : activities.at(-1));
     completed =
-      activities.length < 200 && !hasMoreEligibleRides && !partiallyProcessed;
+      activities.length < 200 && !hasMoreEligibleRides && coveredWholeBatch;
   }
 
   if (
@@ -376,26 +401,28 @@ const importInitialRides = async (
   const accessToken = await getAccessToken(athleteId);
   const activities = await getActivities(accessToken);
   const { rides } = getRidesForBatch(activities, INITIAL_RIDES_PER_IMPORT);
-  const processedRides = await processActivities(
-    athleteId,
-    rides,
-    accessToken,
-    { maxRides: INITIAL_RIDES_PER_IMPORT, subrequestBudget },
-  );
+  const {
+    processedRides: initialProcessedRides,
+    coveredRides: initialCoveredRides,
+  } = await processActivities(athleteId, rides, accessToken, {
+    maxRides: INITIAL_RIDES_PER_IMPORT,
+    subrequestBudget,
+  });
 
   // As with the historic cursor, the initial cursor only passes rides that
-  // were fully processed; the scheduled sweeps pick up what a budget cut
-  // left behind.
+  // need no further work — processed now or already processed — so a
+  // reconciliation or webhook that already handled some of these rides cannot
+  // wedge the initial cursor in place. The scheduled sweeps pick up what a
+  // budget cut left behind.
+  const coveredWholeBatch = initialCoveredRides.length >= rides.length;
   const cursorActivity =
-    processedRides.at(-1) ??
-    (processedRides.length < rides.length
-      ? undefined
-      : (rides.at(-1) ?? activities.at(-1)));
+    initialCoveredRides.at(-1) ??
+    (!coveredWholeBatch ? undefined : (rides.at(-1) ?? activities.at(-1)));
   const { error } = await supabase.from("strava_import_state").upsert({
     athlete_id: athleteId,
     next_before_epoch: getCursor(cursorActivity),
     initial_import_complete: true,
-    ...(processedRides.length > 0
+    ...(initialProcessedRides.length > 0
       ? { analyzed_ride_count: await getProcessedActivityCount(athleteId) }
       : {}),
     completed: false,
