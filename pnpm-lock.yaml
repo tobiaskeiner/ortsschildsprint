@@ -278,8 +278,8 @@ importers:
         specifier: 4.3.5
         version: 4.3.5
       xml-formatter:
-        specifier: 3.7.0
-        version: 3.7.0
+        specifier: 3.7.1
+        version: 3.7.1
     devDependencies:
       '@babel/core':
         specifier: 8.1.2
@@ -2661,9 +2661,9 @@ packages:
       utf-8-validate:
         optional: true
 
-  xml-formatter@3.7.0:
-    resolution: {integrity: sha512-+8qTc3zv2UcJ1v9IsSIce37Dl4MQG14Cp7tWrwmy202UaI1wqRukw5QMX1JHsV+DX64yw77EgGsj2s5wGvuMbQ==}
-    engines: {node: '>= 16'}
+  xml-formatter@3.7.1:
+    resolution: {integrity: sha512-km3zE1tfiz7NE+5+h9jK2VvYsumFa6yBlTUZwnJ62IIK/wmZv2nUgu61yFsodOrRCTpjacLb7DqEabGnWlVfng==}
+    engines: {node: '>= 20'}
 
   xml-parser-xo@4.1.6:
     resolution: {integrity: sha512-mXbSNSM+rIwndoxSwmFa83bOdeP8G/cOGr7XvxA67X7ebCzoAuVez9JYDCDub3zRDNBZxIbfjuXLSsamr7NfwQ==}
@@ -4924,7 +4924,7 @@ snapshots:
 
   ws@8.22.0: {}
 
-  xml-formatter@3.7.0:
+  xml-formatter@3.7.1:
     dependencies:
       xml-parser-xo: 4.1.6
 
