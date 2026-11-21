@@ -129,6 +129,13 @@ Strava's API confirms them.
   missed webhook delivery is recovered for every connected athlete without an
   Import request, including athletes whose historic import already completed.
   Roughly one list request per athlete per sweep keeps this safety net cheap.
+- The dashboard needs the athlete's ride total to express progress. Once an
+  import has completed, every eligible ride of the history is processed, so
+  the dashboard reports the total from the processed rides themselves — no
+  Strava request needed, and current as new rides arrive. The one-shot
+  multi-page history scan serves only imports that are still running; a
+  very long history can outlive the dashboard request's waitUntil window,
+  which is why completed imports must not depend on it.
 - When Strava reports that an activity was deleted or made private, its
   activity-derived collection data is removed — but only after Strava's API
   confirms the report, since webhook deliveries are unauthenticated. If an

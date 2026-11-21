@@ -40,6 +40,25 @@ const getMapSigns = async (osmIds: number[]) => {
   return responses.flat();
 };
 
+/**
+ * The dashboard needs the athlete's ride total to express progress. A
+ * completed import has processed every eligible ride of the athlete's entire
+ * history, so the processed rides themselves are the total — always current
+ * as new rides arrive, and known without any Strava request. The one-shot
+ * history scan only serves imports that are still running; its snapshot
+ * could not keep up with new rides anyway, and a long history can outlive the
+ * dashboard request's waitUntil window, which would leave its claim stuck and
+ * the dashboard without a total at all.
+ */
+const resolveTotalRides = (
+  completed: boolean | null | undefined,
+  totalRideCount: number | null | undefined,
+  processedRideCount: number,
+) =>
+  completed
+    ? Math.max(totalRideCount ?? 0, processedRideCount)
+    : (totalRideCount ?? null);
+
 export const getDashboard = async (athleteId: number) => {
   const [
     { data: athlete, error: athleteError },
@@ -90,7 +109,11 @@ export const getDashboard = async (athleteId: number) => {
     stats: {
       collectedSigns: collectedSignCount ?? 0,
       processedActivities: activityCount ?? 0,
-      totalRides: importState?.total_ride_count ?? null,
+      totalRides: resolveTotalRides(
+        importState?.completed,
+        importState?.total_ride_count,
+        activityCount ?? 0,
+      ),
     },
     importState,
     collection: collectedSigns,
@@ -101,9 +124,15 @@ export const getDashboard = async (athleteId: number) => {
 export const getDashboardProgress = async (athleteId: number) => {
   const { data: importState, error } = await supabase
     .from("strava_import_state")
-    .select("total_ride_count")
+    .select("analyzed_ride_count, completed, total_ride_count")
     .eq("athlete_id", athleteId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return { totalRides: importState?.total_ride_count ?? null };
+  return {
+    totalRides: resolveTotalRides(
+      importState?.completed,
+      importState?.total_ride_count,
+      importState?.analyzed_ride_count ?? 0,
+    ),
+  };
 };
