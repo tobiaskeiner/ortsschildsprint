@@ -71,10 +71,10 @@ const FileUploader: React.FC<FileUploaderProps> = (props) => {
   };
 
   return (
-    <div className="rounded-[1.75rem] bg-surface-container-lowest p-2 shadow-lg sm:p-3">
+    <div className="rounded-[2rem] bg-surface-container-lowest p-2 shadow-lg sm:p-2.5 lg:h-full">
       <div
         {...getRootProps({
-          className: `flex flex-col items-center justify-center overflow-hidden rounded-[1.5rem] border-2 border-dashed px-6 py-10 text-center transition-[border-color,background-color] sm:px-10 sm:py-12 ${
+          className: `flex flex-col items-center justify-center overflow-hidden rounded-[1.75rem] border-2 border-dashed px-6 py-10 text-center transition-[border-color,background-color] sm:px-10 sm:py-12 lg:h-full lg:px-12 lg:py-14 ${
             isDragActive
               ? "border-primary bg-surface-container"
               : "border-outline-variant/60 bg-surface-container-low"
@@ -113,47 +113,46 @@ const FileUploader: React.FC<FileUploaderProps> = (props) => {
             </button>
           </div>
         ) : (
-          <div className="relative z-10 flex flex-col items-center gap-5">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-high text-primary sm:h-20 sm:w-20">
-              <span
-                className="material-symbols-outlined"
-                data-icon="upload_file"
-              >
-                upload_file
-              </span>
+          <div className="relative z-10 flex w-full flex-col items-center gap-6 lg:flex-row lg:gap-9">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white shadow-sm sm:h-20 sm:w-20 lg:h-28 lg:w-28">
+              <img
+                alt=""
+                className="h-10 w-10 sm:h-14 sm:w-14 lg:h-[4.5rem] lg:w-[4.5rem]"
+                src="/stravaClub.png"
+              />
             </div>
-            <div className="text-center">
+            <div className="flex min-w-0 flex-1 flex-col items-center gap-4 lg:items-start">
               <h2 className="font-headline text-2xl font-black tracking-[-0.02em] text-on-surface sm:text-3xl">
                 <FormattedMessage id="upload.title" />
               </h2>
-              <p className="mt-2 text-sm text-secondary">
-                <FormattedMessage
-                  id={
-                    isTouchDevice ? "upload.subtitle.mobile" : "upload.subtitle"
-                  }
-                />
-              </p>
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
                 {["GPX", "TCX", "FIT"].map((format) => (
                   <span
-                    className="rounded-full bg-surface-container-high px-3 py-1 text-xs font-semibold tracking-wide text-secondary"
+                    className="rounded-full bg-surface-container-high px-3 py-1 text-xs font-semibold tracking-wide text-on-surface-variant"
                     key={format}
                   >
                     {format}
                   </span>
                 ))}
               </div>
+              <div className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-3 lg:justify-start">
+                <button
+                  className="rounded-full bg-primary-container px-8 py-3 font-headline text-xs font-bold text-on-primary-container transition-[background-color,transform] hover:cursor-pointer hover:bg-surface-container-highest active:scale-[0.98]"
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    open();
+                  }}
+                >
+                  <FormattedMessage id="upload.button" />
+                </button>
+                {!isTouchDevice && (
+                  <p className="text-sm text-secondary">
+                    <FormattedMessage id="upload.drop.hint" />
+                  </p>
+                )}
+              </div>
             </div>
-            <button
-              className="w-full max-w-xs rounded-full bg-primary-container px-8 py-3 font-headline text-xs font-bold text-on-primary-container transition-[background-color,transform] hover:cursor-pointer hover:bg-surface-container-highest active:scale-[0.98] sm:w-auto"
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                open();
-              }}
-            >
-              <FormattedMessage id="upload.button" />
-            </button>
           </div>
         )}
       </div>
