@@ -34,7 +34,7 @@ export const messages: Record<AppLocale, Record<string, string>> = {
       "Deine Einstellung konnte nicht gespeichert werden.",
     "strava.connect.title": "Strava verbinden",
     "strava.connect.description":
-      "Prüfe deine Fahrten im Freien auf Ortsschilder und sammle sie hier.",
+      "Sammle die Ortsschilder, die du auf Outdoor-Fahrten findest.",
     "strava.connect.summary.question":
       "Zusammenfassung zu Aktivitäten hinzufügen?",
     "strava.connect.summary.hint": "Du kannst dies später ändern.",
@@ -119,13 +119,11 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "legal.privacyPolicy.title": "Datenschutzerklärung",
     "home.title": "Ortsschilder entlang deiner Route",
     "home.description":
-      "Route hochladen, Schilder prüfen und für die Navigation exportieren.",
-    "privacy.title": "Datenschutz geht vor",
+      "Ortsschilder auf deiner Route finden und für die Navigation exportieren.",
     "privacy.description":
-      "Deine Routendatei bleibt im Browser. Für die Suche nach Ortsschildern wird nur der benötigte Kartenausschnitt abgefragt.",
+      "Deine Routendatei bleibt im Browser – abgefragt wird nur der Kartenausschnitt der Route.",
     "upload.title": "Route hochladen",
-    "upload.subtitle": "Datei hier ablegen",
-    "upload.subtitle.mobile": "Datei auswählen",
+    "upload.drop.hint": "oder Datei hierher ziehen",
     "upload.button": "Route auswählen",
     "upload.processing": "Route wird verarbeitet …",
     "upload.cancel": "Abbrechen",
@@ -221,7 +219,7 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "strava.error.savePreference": "Could not save your preference.",
     "strava.connect.title": "Connect Strava",
     "strava.connect.description":
-      "Check your outdoor rides for city limit signs and collect them here.",
+      "Collect the city-limit signs you pass on outdoor rides.",
     "strava.connect.summary.question": "Add sign summaries to activities?",
     "strava.connect.summary.hint": "You can change this later.",
     "strava.connect.addSummary": "Add a sign summary",
@@ -304,13 +302,11 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "legal.privacyPolicy.title": "Privacy Policy",
     "home.title": "City-limit signs along your route",
     "home.description":
-      "Upload a route, review its signs, and export it for navigation.",
-    "privacy.title": "Privacy First",
+      "Find the signs on your route and export them for navigation.",
     "privacy.description":
-      "Your route file stays in the browser. Only the map area needed to look up nearby signs is requested.",
+      "Your route file stays in the browser – only the route's map area is queried.",
     "upload.title": "Upload a route",
-    "upload.subtitle": "Drop a file here",
-    "upload.subtitle.mobile": "Select a file",
+    "upload.drop.hint": "or drop a file here",
     "upload.button": "Select route",
     "upload.processing": "Processing route …",
     "upload.cancel": "Cancel",
