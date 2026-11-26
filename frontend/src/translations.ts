@@ -119,11 +119,11 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "legal.privacyPolicy.title": "Datenschutzerklärung",
     "home.title": "Ortsschilder entlang deiner Route",
     "home.description":
-      "Ortsschilder auf deiner Route finden und für die Navigation exportieren.",
+      "Lade eine Routendatei hoch, um ihre Ortsschilder zu finden und für dein Navi zu exportieren.",
     "privacy.description":
       "Deine Routendatei bleibt im Browser – abgefragt wird nur der Kartenausschnitt der Route.",
-    "upload.title": "Route hochladen",
-    "upload.drop.hint": "oder Datei hierher ziehen",
+    "upload.drop.hint": "oder Datei auf die Karte ziehen",
+    "upload.drop.active": "Loslassen, um die Route zu laden",
     "upload.button": "Route auswählen",
     "upload.processing": "Route wird verarbeitet …",
     "upload.cancel": "Abbrechen",
@@ -302,11 +302,11 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "legal.privacyPolicy.title": "Privacy Policy",
     "home.title": "City-limit signs along your route",
     "home.description":
-      "Find the signs on your route and export them for navigation.",
+      "Upload a route file to find its signs and export them for your navigation device.",
     "privacy.description":
       "Your route file stays in the browser – only the route's map area is queried.",
-    "upload.title": "Upload a route",
-    "upload.drop.hint": "or drop a file here",
+    "upload.drop.hint": "or drop a file onto the map",
+    "upload.drop.active": "Drop to load the route",
     "upload.button": "Select route",
     "upload.processing": "Processing route …",
     "upload.cancel": "Cancel",

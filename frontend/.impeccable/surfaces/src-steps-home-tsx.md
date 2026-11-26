@@ -4,29 +4,29 @@ slug: "src-steps-home-tsx"
 primary_target: "src/steps/Home.tsx"
 related_targets:
   [
-    "src/components/FileUpload.tsx",
-    "src/components/PrivacyStatement.tsx",
+    "src/components/useRouteFileDrop.ts",
+    "src/components/HomeRouteMap.tsx",
     "src/translations.ts",
   ]
 ---
 
 # Home
 
-Mode: Persuade (tool landing page: the visitor decides to upload a route or connect Strava)
+Mode: Persuade (tool landing page: the visitor uploads a route, or takes the secondary Strava path)
 Route: `/`
 
-The first-time rider's job is to start the route workflow in one glance: drop or select a GPX/TCX/FIT route, trust that the file stays local, and see the optional Strava collection as a clearly secondary path.
+A first-time rider must see in one glance that Ortsschildsprint finds the city-limit signs on a GPX/TCX/FIT route and exports them for navigation, with the file staying local. Route upload is the primary path; Strava is reduced to the orange Connect Strava button on the map (user decision, 2026-11-26). The look follows the Strava dashboard (user decision): grayscale stack, town-sign yellow markers, rounded instrument panels.
 
 ## Direction contract
 
-THESIS: The home screen is a route-ready field instrument, not a hero-plus-card split: one dominant upload surface whose drop zone visualizes the product's mechanism (a route line with town-sign markers), with copy reduced to strings that each name an action, an outcome, or a trust fact. It refuses the empty-bottom two-column hero.
+THESIS: The home screen is a map stage, the same object the dashboard's collection map is: one rounded map canvas with a route and town-sign plates along it, carrying the route panel and the Connect Strava button. It refuses the headline-left/upload-card-right split and the empty dashed upload box; the whole map is the drop target.
 
-OWN-WORLD: Inherit Ortsschildsprint's close grayscale stack, Space Grotesk display/headline and Inter body, soft instrument geometry. Town-sign yellow appears only where it carries sign meaning: the sprinting-Ortsschild mascot (`/stravaClub.png`) sits in a fixed white badge in the drop zone so its dark frame reads in both themes (hand-drawn SVG sign marks were removed — they rendered broken). Strava orange stays exclusively on the home connect action, token-conform (`strava-connect-action`: control radius, label typography); per user request the warm orange glow shadow is removed — flat orange only.
+OWN-WORLD: Dashboard world: close grayscale stack, light map ground drawn as authored SVG (roads, river, town blocks), route in road ink, small yellow Ortsschild plates with dark rims as the only yellow; route panel in surface-container-lowest (surface-container-high in dark) with an outline-variant edge; Space Grotesk headings, Inter body; flat Strava-orange connect button (strava-connect-action token, neutral shadow, no orange glow).
 
-STORY: A rider lands, reads "city-limit signs along your route", immediately sees what to do (drop or select a route file), what they get (signs found and exported for navigation), why to trust it (file stays in the browser), and that Strava is optional.
+STORY: The rider sees signs sitting on a route, reads the route heading and its local-file fact, and acts: Select route (or drop on the map), or Connect Strava as the secondary path.
 
-FIRST VIEWPORT (1440px, light): fixed blurred header; vertically centered content — left 2/5 of a five-column grid holds the display headline (leading 1.05 so Space Grotesk descenders never clip into the next line at text-7xl) and a one-sentence outcome line, with the flat orange Strava connect button + one-line caption pinned to the column bottom (`self-end`) so it aligns with the upload card's bottom edge; right 3/5 holds the upload shell stretched to the full row height (`lg:h-full` on shell and drop zone) with the white-badged sprinting-Ortsschild mascot left, "Upload a route" heading, GPX/TCX/FIT chips, and the pill select button with an "or drop a file here" hint on fine pointers; a slim full-width privacy strip (shield icon + one sentence) closes the viewport. Mobile stacks: headline, outcome line, upload, Strava, privacy.
+FIRST VIEWPORT: Below the fixed header a rounded map stage fills the viewport. Top-left: white route panel with display h1, one outcome line, dark Select route pill, GPX/TCX/FIT chips, drop hint on fine pointers, local-file fact. Bottom-right: the orange Connect Strava button alone on the map. The route runs bottom-left to top-right. Phones/tablets: route panel, a map window filling the remaining height, then the button; both actions inside a 390x844 first viewport.
 
-FORM: Instrument-band hero inside the established visual world; code-led redesign (no concept-seed roll available in this runtime — seed: none (unavailable)); position 1 (centered task hero) in the grounded structure order. The user pinned: Strava connect button stays orange (glow removed on request); verify every change by screenshots, including zoomed crops; remove purposeless text strings; use the real `stravaClub.png` mascot instead of hand-drawn sign SVGs.
+FORM: Map-led stage, position 2 in the grounded structure order (dealt hand 6, 1, 2; user chose the map-led stage on the decision page). seed:b08a5807a9c9d366. Signature interaction: the route draws in and the sign plates drop onto it once (off under prefers-reduced-motion); dragging a file over the stage turns the whole map into the drop target with the prompt placed on open map. User pins: Strava button stays orange; verify via screenshots; every text string must have a purpose.
 
-FINISH: ship — verified by batched screenshots (desktop 1440 + mobile 390 + tablet 834, de/en, light/dark) in `.impeccable/review/home-*.png`; detector run against the dev server (only the two DESIGN.md-pinned patterns remain: white-on-Strava-orange connect token, dashed drop zone inside the upload shell); ESLint, e2e (route workflow), build, and Prettier pass. No durable design-system change, so `DESIGN.md` remains authoritative.
+FINISH: Finish review (code-led, no comp) returned `fix`; fixes applied, then the Strava panel was reduced to the button on user request. Remaining detector findings are pinned: white on Strava orange (user pin + DESIGN.md token) and the route panel floating on the map stage (mirrors the dashboard map toolbar). No durable system change; DESIGN.md stays authoritative.

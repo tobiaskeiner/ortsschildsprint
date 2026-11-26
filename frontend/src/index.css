@@ -314,3 +314,279 @@ body {
     background: var(--color-primary-container);
   }
 }
+
+/* Home: map stage carrying both entry points. */
+@layer components {
+  .home-stage {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 1.75rem;
+    padding: 0.75rem;
+    background: var(--color-surface-container);
+    transition: border-color 160ms ease-out;
+  }
+
+  .home-stage[data-drag-active="true"] {
+    border-color: var(--color-primary);
+  }
+
+  /* Phones and tablets: the map shows as a zoomed window between the panels
+     and keeps running behind them. */
+  .home-map {
+    position: relative;
+    order: 1;
+    width: 100%;
+    height: auto;
+    flex: 1 0 9rem;
+    transform: scale(1.9);
+    transform-origin: 58% 58%;
+  }
+
+  .home-map-ground {
+    fill: var(--color-surface-container);
+  }
+
+  .home-map-forest {
+    fill: var(--color-surface-container-high);
+  }
+
+  .home-map-river {
+    fill: none;
+    stroke: var(--color-surface-container-highest);
+    stroke-linecap: round;
+    stroke-width: 16;
+  }
+
+  .home-map-road-casing,
+  .home-map-road,
+  .home-map-lane {
+    fill: none;
+    stroke-linecap: round;
+  }
+
+  .home-map-road-casing {
+    stroke: var(--color-outline-variant);
+    stroke-width: 13;
+  }
+
+  .home-map-road {
+    stroke: var(--color-surface-container-lowest);
+    stroke-width: 9;
+  }
+
+  .home-map-lane {
+    stroke: var(--color-outline-variant);
+    stroke-width: 2.5;
+  }
+
+  .home-map-town {
+    fill: var(--color-surface-container-highest);
+  }
+
+  .home-map-route-casing,
+  .home-map-route {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .home-map-route-casing {
+    stroke: var(--color-surface-container-lowest);
+    stroke-width: 13;
+  }
+
+  .home-map-route {
+    stroke: var(--color-primary);
+    stroke-width: 6;
+  }
+
+  .home-map-sign rect {
+    fill: var(--color-town-sign);
+    stroke: #171716;
+    stroke-width: 2.5;
+  }
+
+  .home-map-sign .home-map-sign-rim {
+    fill: none;
+    stroke-width: 1.25;
+  }
+
+  .home-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--color-outline-variant);
+    border-radius: 1.5rem;
+    padding: 1.25rem;
+    box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 0.14);
+  }
+
+  .home-panel--route {
+    background: var(--color-surface-container-lowest);
+  }
+
+  :root[data-theme="dark"] .home-panel--route {
+    background: var(--color-surface-container-high);
+    color: var(--color-on-surface);
+  }
+
+  .home-panel-fact {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    margin-top: 1.25rem;
+    border-top: 1px solid var(--color-outline-variant);
+    padding-top: 0.875rem;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--color-secondary);
+  }
+
+  .home-panel-fact svg {
+    margin-top: 0.0625rem;
+  }
+
+  /* Strava is a secondary path: just the connect action, on the map. */
+  .home-strava-link {
+    position: relative;
+    z-index: 1;
+    order: 2;
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.5rem;
+    border-radius: 1rem;
+    padding: 0.875rem 1.25rem;
+    background: var(--color-strava-orange);
+    color: #fff;
+    font-family: var(--font-headline);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow: 0 0.75rem 1.75rem rgb(0 0 0 / 0.18);
+    transition:
+      background-color 160ms ease-out,
+      transform 160ms ease-out;
+  }
+
+  .home-strava-link:hover {
+    background: var(--color-strava-orange-hover);
+  }
+
+  .home-strava-link:active {
+    transform: scale(0.98);
+  }
+
+  .home-drop-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--color-surface) 45%, transparent);
+    outline: 3px dashed var(--color-primary);
+    outline-offset: -0.75rem;
+    border-radius: inherit;
+  }
+
+  @media (min-width: 40rem) {
+    .home-stage {
+      padding: 1rem;
+    }
+
+    .home-map {
+      flex-basis: 15rem;
+      transform: scale(1.35);
+      transform-origin: 60% 55%;
+    }
+
+    .home-panel {
+      padding: 2rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    /* Both panels share one cell, pinned to opposite corners of the map. */
+    .home-stage {
+      display: grid;
+      grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+      min-height: 36rem;
+      padding: 1.5rem;
+    }
+
+    .home-panel {
+      grid-area: 1 / 1;
+      align-self: start;
+    }
+
+    .home-strava-link {
+      grid-area: 1 / 1;
+      align-self: end;
+      justify-self: end;
+    }
+
+    .home-map {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      height: 100%;
+      flex: none;
+      transform: none;
+    }
+
+    .home-panel {
+      width: min(36rem, 46%);
+    }
+
+    /* Keep the drop prompt on open map, clear of both panels. */
+    .home-drop-overlay {
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 4rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .home-map-route {
+      stroke-dasharray: 1;
+      animation: home-route-draw 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .home-map-sign > g {
+      transform-box: fill-box;
+      transform-origin: 50% 100%;
+      animation: home-sign-drop 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: calc(180ms + var(--sign-index) * 190ms);
+    }
+  }
+
+  @keyframes home-route-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes home-sign-drop {
+    from {
+      opacity: 0;
+      transform: translateY(-14px) scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
