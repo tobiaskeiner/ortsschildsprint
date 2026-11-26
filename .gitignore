@@ -5,4 +5,3 @@
 # Impeccable transient local state
 /.impeccable/config.local.json
 /.impeccable/live/
-.opencode
