@@ -37,12 +37,17 @@ export const parseFitToGeoJson = (
 
   const { messages } = decoder.read();
 
-  const coordinates: [number, number][] = messages.recordMesgs
+  const coordinates: GeoJSON.Position[] = messages.recordMesgs
     .filter((r) => r.positionLat != null && r.positionLong != null)
-    .map((r) => [
-      r.positionLong! * (180 / 2 ** 31),
-      r.positionLat! * (180 / 2 ** 31),
-    ]);
+    .map((r) => {
+      const position = [
+        r.positionLong! * (180 / 2 ** 31),
+        r.positionLat! * (180 / 2 ** 31),
+      ];
+      // keep elevation (metres) when the device recorded it
+      const altitude = r.enhancedAltitude ?? r.altitude;
+      return typeof altitude === "number" ? [...position, altitude] : position;
+    });
 
   if (coordinates.length === 0) {
     throw new Error("error.parse.noFitPositionData");

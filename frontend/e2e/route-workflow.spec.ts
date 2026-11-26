@@ -42,7 +42,7 @@ test("uploads a route, reviews its signs, and downloads an enriched GPX", async 
   await expect(
     page.getByRole("heading", { name: "Route: Morning Ride" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Go to Editor" }).click();
+  await page.getByRole("button", { name: "Find signs" }).click();
 
   await expect(page).toHaveURL("/route/edit");
   await page.getByRole("button", { name: "Proceed to export" }).click();

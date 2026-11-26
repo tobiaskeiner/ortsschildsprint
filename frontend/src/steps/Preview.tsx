@@ -1,108 +1,251 @@
-import { use } from "react";
-import { GeoJsonContext } from "../context/GeoJsonContext";
-import Map, { Source, Layer } from "react-map-gl/maplibre";
+import { use, useMemo, useState } from "react";
+import Map, { Layer, Marker, Source } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { FormattedMessage, useIntl } from "react-intl";
+import { GeoJsonContext } from "../context/GeoJsonContext";
+import RouteProfile from "../components/RouteProfile";
+import { useRouteFileDrop } from "../components/useRouteFileDrop";
 import { getZoomLevel } from "../utils/getZoomLevel";
-import ChangeFile from "../components/ChangeFile";
-import { FormattedMessage } from "react-intl";
+import { buildRouteProfile } from "../utils/routeProfile";
 
 interface PreviewProps {
   onContinue: () => void;
+  onReplaced: () => void;
 }
 
-const Preview: React.FC<PreviewProps> = (props) => {
-  const { onContinue } = props;
-  const geoContext = use(GeoJsonContext);
-  if (!geoContext) return;
+/** A miniature town sign: the one place yellow appears on this step. */
+const TownSignMark: React.FC = () => (
+  <svg
+    aria-hidden="true"
+    className="h-4 w-6 shrink-0"
+    focusable="false"
+    viewBox="0 0 24 16"
+  >
+    <rect
+      className="fill-town-sign"
+      height="15"
+      rx="2.5"
+      stroke="#1b1b1a"
+      strokeWidth="1"
+      width="23"
+      x="0.5"
+      y="0.5"
+    />
+    <rect
+      fill="none"
+      height="12"
+      rx="1.25"
+      stroke="#1b1b1a"
+      strokeWidth="1.25"
+      width="20"
+      x="2"
+      y="2"
+    />
+    <rect fill="#1b1b1a" height="2.25" rx="0.5" width="12" x="6" y="5.5" />
+    <rect fill="#1b1b1a" height="1.25" rx="0.5" width="8" x="8" y="9.5" />
+  </svg>
+);
 
-  const mapHeightClass =
-    "h-[45vh] min-h-[18rem] max-h-[32rem] md:h-[32rem] md:max-h-none";
+const RouteEndMarker: React.FC<{ variant: "start" | "finish" }> = ({
+  variant,
+}) => (
+  <span
+    aria-hidden="true"
+    className={`block h-4 w-4 border-[3px] border-[#1b1b1a] bg-white shadow-[0_1px_4px_rgb(0_0_0/0.35)] ${
+      variant === "start" ? "rounded-full" : "rounded-[3px]"
+    }`}
+  />
+);
+
+const Preview: React.FC<PreviewProps> = ({ onContinue, onReplaced }) => {
+  const geoContext = use(GeoJsonContext);
+  const intl = useIntl();
+  const { getRootProps, getInputProps, isDragActive, open } = useRouteFileDrop({
+    onParseSuccessful: onReplaced,
+  });
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const geoJson = geoContext?.geoJson;
+  const profile = useMemo(
+    () => (geoJson ? buildRouteProfile(geoJson) : null),
+    [geoJson],
+  );
+
+  if (!geoContext || !geoJson) return null;
+
+  // without a drawable line (single point, waypoints only) the map still
+  // shows the file, centred, and the profile and route facts stay hidden
+  const start = profile?.coordinates[0];
+  const finish = profile?.coordinates.at(-1);
+  const active =
+    activeIndex == null ? undefined : profile?.coordinates.at(activeIndex);
+  const format = (
+    geoContext.fileExtension ??
+    geoContext.rawFileName?.split(".").pop() ??
+    ""
+  ).toUpperCase();
+
+  const facts = [
+    {
+      id: "format",
+      label: <FormattedMessage id="preview.file.format" />,
+      value: format,
+    },
+    ...(profile
+      ? [
+          {
+            id: "points",
+            label: <FormattedMessage id="preview.file.points" />,
+            value: intl.formatNumber(profile.coordinates.length),
+          },
+          {
+            id: "shape",
+            label: <FormattedMessage id="preview.file.shape" />,
+            value: (
+              <FormattedMessage
+                id={
+                  profile.isLoop ? "preview.shape.loop" : "preview.shape.oneWay"
+                }
+              />
+            ),
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <div className="flex flex-col gap-4 md:gap-8">
-      <div className="min-w-0">
-        <h1 className="break-words font-headline text-4xl font-black leading-tight tracking-tighter text-on-surface uppercase sm:text-5xl md:text-6xl xl:text-7xl">
-          Route: {geoContext.routeName ?? "File parsed."}
+    <div className="grid grid-cols-1 gap-4 [grid-template-areas:'title''map''profile''action''file'] sm:gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:grid-rows-[auto_auto_1fr_auto] lg:[grid-template-areas:'title_title''map_file''map_action''profile_profile'] xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <header className="min-w-0 [grid-area:title]">
+        <h1 className="font-headline text-4xl leading-[1.05] font-black tracking-tighter text-balance break-words text-on-surface uppercase sm:text-5xl xl:text-6xl">
+          Route: {geoContext.routeName ?? geoContext.rawFileName}
         </h1>
-        <h2 className="mt-2 break-all font-headline text-sm font-bold tracking-tight text-secondary uppercase sm:text-lg sm:break-words md:text-2xl">
+        <p className="mt-2 font-headline text-sm font-bold tracking-[0.06em] break-all text-secondary uppercase sm:text-base">
           {geoContext.rawFileName}
+        </p>
+      </header>
+
+      <div className="flex items-end [grid-area:action]">
+        <button
+          className="group flex w-full items-center justify-center gap-3 rounded-full bg-on-surface px-7 py-4 font-headline text-base font-bold tracking-[0.06em] text-surface uppercase shadow-[0_10px_24px_-12px_rgb(0_0_0/0.5)] transition-[background-color,transform] duration-200 ease-out hover:cursor-pointer hover:bg-on-surface/85 active:scale-[0.98] sm:py-5"
+          onClick={onContinue}
+          type="button"
+        >
+          <TownSignMark />
+          <FormattedMessage id="preview.action.button" />
+          <span
+            aria-hidden="true"
+            className="material-symbols-outlined text-xl transition-transform duration-200 ease-out group-hover:translate-x-1"
+          >
+            arrow_forward
+          </span>
+        </button>
+      </div>
+
+      <div className="map-quiet-attribution relative h-[52vh] min-h-[18rem] max-h-[28rem] overflow-hidden rounded-[1.5rem] bg-surface-container shadow-[0_12px_40px_-24px_rgb(0_0_0/0.25)] [grid-area:map] md:rounded-[1.75rem] lg:h-auto lg:min-h-[21rem] lg:max-h-none">
+        <Map
+          key={
+            profile
+              ? `${start?.join()}-${profile.coordinates.length}`
+              : "no-route-line"
+          }
+          initialViewState={
+            profile
+              ? { bounds: profile.bounds, fitBoundsOptions: { padding: 48 } }
+              : {
+                  longitude: geoContext.center?.geometry.coordinates[0],
+                  latitude: geoContext.center?.geometry.coordinates[1],
+                  zoom: getZoomLevel(geoJson),
+                }
+          }
+          attributionControl={{ compact: true }}
+          mapStyle="https://tiles.openfreemap.org/styles/positron"
+          style={{ width: "100%", height: "100%" }}
+        >
+          <Source data={geoJson} id="route" type="geojson">
+            <Layer
+              id="route-line"
+              layout={{ "line-cap": "round", "line-join": "round" }}
+              paint={{ "line-color": "#1b1b1a", "line-width": 3.5 }}
+              type="line"
+            />
+          </Source>
+          {profile && finish && !profile.isLoop && (
+            <Marker latitude={finish[1]} longitude={finish[0]}>
+              <RouteEndMarker variant="finish" />
+            </Marker>
+          )}
+          {start && (
+            <Marker latitude={start[1]} longitude={start[0]}>
+              <RouteEndMarker variant="start" />
+            </Marker>
+          )}
+          {active && (
+            <Marker latitude={active[1]} longitude={active[0]}>
+              <span
+                aria-hidden="true"
+                className="block h-6 w-6 rounded-full border-4 border-white bg-[#1b1b1a] shadow-[0_2px_8px_rgb(0_0_0/0.4)]"
+              />
+            </Marker>
+          )}
+        </Map>
+      </div>
+
+      <section
+        {...getRootProps({ role: "region" })}
+        aria-labelledby="route-file-title"
+        className="flex flex-col gap-4 rounded-[1.5rem] bg-surface-container-lowest p-5 shadow-[0_12px_40px_-24px_rgb(0_0_0/0.25)] [grid-area:file] sm:p-6 md:rounded-[1.75rem]"
+      >
+        <h2
+          className="font-headline text-lg font-black tracking-tight uppercase"
+          id="route-file-title"
+        >
+          <FormattedMessage id="preview.file.title" />
         </h2>
-      </div>
-      <div className="grid w-full grid-cols-1 gap-4 xl:grid-cols-3 xl:gap-8">
-        <div className="xl:col-span-2">
-          <div className="overflow-hidden rounded-[1.5rem] bg-surface-container-lowest p-2 shadow-lg sm:rounded-[1.75rem] sm:p-3">
-            {geoContext.parseState === "inProgress" ? (
-              <div
-                className={`${mapHeightClass} flex items-center justify-center rounded-[1.25rem] bg-surface-container`}
-              >
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-12 h-12 border-4 border-primary-container border-t-primary rounded-full animate-spin"></div>
-                  <p className="text-secondary font-medium">
-                    Processing file...
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className={mapHeightClass}>
-                <Map
-                  initialViewState={{
-                    longitude: geoContext?.center?.geometry.coordinates[0],
-                    latitude: geoContext?.center?.geometry.coordinates[1],
-                    zoom: getZoomLevel(geoContext?.geoJson),
-                  }}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: 20,
-                  }}
-                  mapStyle="https://tiles.openfreemap.org/styles/positron"
-                >
-                  {geoContext?.geoJson && (
-                    <Source
-                      id="route"
-                      type="geojson"
-                      data={geoContext?.geoJson}
-                    >
-                      <Layer
-                        id="route-line"
-                        type="line"
-                        paint={{ "line-color": "#202020", "line-width": 3 }}
-                      />
-                    </Source>
-                  )}
-                </Map>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 xl:col-span-1 xl:gap-8">
-          <div className="order-1 flex flex-col gap-4 rounded-[1.5rem] bg-surface-container-high p-5 sm:rounded-[1.75rem] sm:p-8 xl:order-2 xl:gap-6">
-            <div>
-              <h3 className="mb-2 font-headline text-2xl font-black tracking-tighter uppercase">
-                <FormattedMessage id="preview.action.title" />
-              </h3>
-              <p className="text-on-surface-variant text-sm font-body">
-                <FormattedMessage id="preview.action.description" />
-              </p>
-            </div>
-            <button
-              onClick={onContinue}
-              className="group flex w-full items-center justify-center gap-3 rounded-full bg-primary-container py-4 transition-all duration-300 hover:scale-[1.02] hover:bg-primary active:scale-95 sm:gap-4 sm:py-5"
+        <dl className="flex flex-col">
+          {facts.map(({ id, label, value }, index) => (
+            <div
+              className={`flex items-baseline justify-between gap-4 py-2.5 ${
+                index > 0 ? "border-t border-surface-container-high" : ""
+              }`}
+              key={id}
             >
-              <span className="font-headline text-lg font-black tracking-tight text-on-primary-container uppercase transition-colors group-hover:text-white sm:text-xl">
-                <FormattedMessage id="preview.action.button" />
-              </span>
-              <span className="material-symbols-outlined font-black text-on-primary-container group-hover:text-white transition-colors">
-                arrow_forward
-              </span>
-            </button>
-          </div>
-          <div className="order-2 xl:order-1">
-            <ChangeFile />
-          </div>
+              <dt className="text-sm text-secondary">{label}</dt>
+              <dd className="font-headline text-base font-bold tabular-nums">
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <input {...getInputProps()} />
+        <button
+          className={`flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 font-headline text-sm font-bold tracking-[0.08em] text-on-surface uppercase transition-colors duration-150 hover:cursor-pointer hover:bg-surface-container-highest ${
+            isDragActive
+              ? "bg-surface-container-highest"
+              : "bg-surface-container-high"
+          }`}
+          onClick={open}
+          type="button"
+        >
+          <span
+            aria-hidden="true"
+            className="material-symbols-outlined text-lg"
+          >
+            upload_file
+          </span>
+          <FormattedMessage id="preview.file.replace" />
+        </button>
+      </section>
+
+      {profile && (
+        <div className="min-w-0 [grid-area:profile]">
+          <RouteProfile
+            activeIndex={activeIndex}
+            onActiveIndexChange={setActiveIndex}
+            profile={profile}
+          />
         </div>
-      </div>
+      )}
     </div>
   );
 };
+
 export default Preview;

@@ -5,12 +5,12 @@ import Map, { Layer, Marker, Source } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Formats, Sign, SnapCandidate } from "../../../shared/types";
 import { FormattedMessage } from "react-intl";
-import ChangeFile from "../components/ChangeFile";
 import ErrorAlert from "../components/ErrorAlert";
 import ExportLabel from "../components/ExportLabel";
 import MapMarkerIcon from "../components/MapMarkerIcon";
 import NoSignFound from "../components/NoSignFound";
 import RouteInfo from "../components/RouteInfo";
+import Preview from "../steps/Preview";
 import { buildFitFromGeoJson } from "../utils/buildFitFile";
 import {
   buildGpx,
@@ -85,6 +85,15 @@ const RouteWorkflowPage: React.FC = () => {
     }
 
     return <Navigate replace to={HOME_ROUTE} />;
+  }
+
+  if (step === "preview") {
+    return (
+      <Preview
+        onContinue={() => navigateTo(WORKFLOW_EDIT_ROUTE)}
+        onReplaced={() => navigateTo(WORKFLOW_ROUTE)}
+      />
+    );
   }
 
   const selectedSign = geoContext.signs?.find(
@@ -234,18 +243,7 @@ const RouteWorkflowPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4 md:gap-8">
-      {step === "preview" ? (
-        <div className="relative min-w-0">
-          <h1 className="break-words font-headline text-4xl font-black leading-tight tracking-tighter text-on-surface uppercase sm:text-5xl md:text-6xl xl:text-7xl">
-            Route: {geoContext.routeName ?? "File parsed."}
-          </h1>
-          <h2 className="mt-2 break-all font-headline text-sm font-bold tracking-tight text-secondary uppercase sm:text-lg sm:break-words md:text-2xl">
-            {geoContext.rawFileName}
-          </h2>
-        </div>
-      ) : step === "export" ? (
-        <RouteInfo />
-      ) : null}
+      {step === "export" && <RouteInfo />}
 
       <div
         className={`grid grid-cols-1 gap-4 xl:gap-8 ${
@@ -598,42 +596,6 @@ const RouteWorkflowPage: React.FC = () => {
 
         {step !== "edit" && (
           <div className="flex flex-col gap-4 xl:col-span-1 xl:gap-8">
-            {step === "preview" && (
-              <>
-                <div className="order-1 flex flex-col gap-4 rounded-[1.5rem] bg-surface-container-high p-5 sm:rounded-[1.75rem] sm:p-8 xl:order-2 xl:gap-6">
-                  <div>
-                    <h3 className="mb-2 font-headline text-2xl font-black tracking-tighter uppercase">
-                      <FormattedMessage id="preview.action.title" />
-                    </h3>
-                    <p className="text-sm font-body text-on-surface-variant">
-                      <FormattedMessage id="preview.action.description" />
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      navigateTo(WORKFLOW_EDIT_ROUTE);
-                    }}
-                    className="group flex w-full items-center justify-center gap-3 rounded-full bg-primary-container py-4 transition-all duration-300 hover:scale-[1.02] hover:bg-primary active:scale-95 sm:gap-4 sm:py-5"
-                    type="button"
-                  >
-                    <span className="font-headline text-lg font-black tracking-tight text-on-primary-container uppercase transition-colors group-hover:text-white sm:text-xl">
-                      <FormattedMessage id="preview.action.button" />
-                    </span>
-                    <span className="material-symbols-outlined font-black text-on-primary-container transition-colors group-hover:text-white">
-                      arrow_forward
-                    </span>
-                  </button>
-                </div>
-                <div className="order-2 xl:order-1">
-                  <ChangeFile
-                    onParseSuccessful={() => {
-                      navigateTo(WORKFLOW_ROUTE);
-                    }}
-                  />
-                </div>
-              </>
-            )}
-
             {step === "export" && (
               <div className="flex flex-col gap-6 rounded-[1.5rem] bg-surface-container-lowest p-4 shadow-lg sm:rounded-[1.75rem] sm:p-6 md:gap-8 md:p-8">
                 <div>

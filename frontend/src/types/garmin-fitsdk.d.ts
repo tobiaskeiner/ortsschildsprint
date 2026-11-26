@@ -21,6 +21,7 @@ declare module "@garmin/fitsdk" {
     positionLong?: number; // semicircles
     distance?: number; // meters
     altitude?: number; // meters
+    enhancedAltitude?: number; // meters
     speed?: number; // m/s
     heartRate?: number; // bpm
     cadence?: number; // rpm
