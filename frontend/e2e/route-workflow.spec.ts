@@ -1,63 +1,149 @@
-import { expect, test } from "@playwright/test";
+import { Decoder, Stream } from "@garmin/fitsdk";
+import type { Page } from "@playwright/test";
+import {
+  EXAMPLEVILLE,
+  expect,
+  gpxRoute,
+  mockSigns,
+  readDownload,
+  tcxRoute,
+  test,
+  uploadRoute,
+} from "./fixtures";
 
-const routeFile = {
-  name: "morning-ride.gpx",
-  mimeType: "application/gpx+xml",
-  buffer: Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="playwright" xmlns="http://www.topografix.com/GPX/1/1">
-  <metadata><name>Morning Ride</name></metadata>
-  <trk><name>Morning Ride</name><trkseg>
-    <trkpt lat="50.0000" lon="8.0000" />
-    <trkpt lat="50.0100" lon="8.0100" />
-  </trkseg></trk>
-</gpx>`),
+const goToExport = async (page: Page) => {
+  await page.getByRole("button", { name: "Find signs" }).click();
+  await expect(page).toHaveURL("/route/edit");
+  await page.getByRole("button", { name: "Proceed to export" }).click();
+  await expect(page).toHaveURL("/route/export");
 };
+
+const downloadAs = async (page: Page, formatLabel: string) => {
+  await page.getByText(formatLabel, { exact: true }).click();
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download Enriched Route" }).click();
+  return download;
+};
+
+test.beforeEach(async ({ page }) => {
+  await mockSigns(page, [EXAMPLEVILLE]);
+});
 
 test("uploads a route, reviews its signs, and downloads an enriched GPX", async ({
   page,
 }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem("app-locale", "en");
-    localStorage.setItem("app-theme", "light");
-  });
-  await page.route("**/api/signs", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify([
-        {
-          id: 1,
-          osm_id: 123,
-          tags: { name: "Exampleville" },
-          lat: 50.005,
-          long: 8.005,
-        },
-      ]),
-    });
-  });
+  await uploadRoute(page, gpxRoute());
+  await expect(
+    page.getByRole("heading", { name: "Route: Morning Ride" }),
+  ).toBeVisible();
 
-  await page.goto("/");
-  await page.locator('input[type="file"]').setInputFiles(routeFile);
+  await goToExport(page);
+  await expect(page.getByText("Sprint Points")).toBeVisible();
+  await expect(
+    page.getByText("Original .gpx file is enriched with waypoints"),
+  ).toBeVisible();
 
+  const download = await downloadAs(page, "GPX (Universal)");
+  expect(download.suggestedFilename()).toBe("Morning Ride.gpx");
+  const gpx = (await readDownload(download)).toString("utf8");
+  expect(gpx).toContain("<name>Exampleville</name>");
+  expect(gpx).toMatch(/<wpt lat="[\d.]+" lon="[\d.]+"/);
+});
+
+test("converts an uploaded GPX route to TCX", async ({ page }) => {
+  await uploadRoute(page, gpxRoute());
+  await goToExport(page);
+
+  const download = await downloadAs(page, "TCX");
+  expect(download.suggestedFilename()).toBe("Morning Ride.tcx");
+  const tcx = (await readDownload(download)).toString("utf8");
+  expect(tcx).toContain("<TrainingCenterDatabase");
+  expect(tcx).toContain("<CoursePoint>");
+  expect(tcx).toContain("Exampleville");
+});
+
+test("converts an uploaded GPX route to a FIT course with a course point", async ({
+  page,
+}) => {
+  await uploadRoute(page, gpxRoute());
+  await goToExport(page);
+
+  const download = await downloadAs(page, "FIT (Recommended)");
+  expect(download.suggestedFilename()).toBe("Morning Ride.fit");
+  const fit = await readDownload(download);
+  expect(fit.subarray(8, 12).toString("ascii")).toBe(".FIT");
+
+  const decoder = new Decoder(Stream.fromBuffer(fit));
+  expect(decoder.checkIntegrity()).toBe(true);
+  const { messages, errors } = decoder.read();
+  expect(errors).toEqual([]);
+  expect(messages.courseMesgs?.[0]?.name).toBe("Morning Ride");
+  expect((messages.coursePointMesgs ?? []).map((point) => point.name)).toEqual([
+    "Exampleville",
+  ]);
+});
+
+test("enriches an uploaded TCX route in its original format", async ({
+  page,
+}) => {
+  await uploadRoute(page, tcxRoute());
+  await expect(
+    page.getByRole("heading", { name: "Route: Evening Loop" }),
+  ).toBeVisible();
+  await goToExport(page);
+  await expect(
+    page.getByText("Original .tcx file is enriched with waypoints"),
+  ).toBeVisible();
+
+  const download = await downloadAs(page, "TCX");
+  expect(download.suggestedFilename()).toBe("Evening Loop.tcx");
+  const tcx = (await readDownload(download)).toString("utf8");
+  expect(tcx).toContain("<Name>Evening Loop</Name>");
+  expect(tcx).toContain("<CoursePoint>");
+  expect(tcx).toContain("Exampleville");
+});
+
+test("converts an uploaded TCX route to GPX", async ({ page }) => {
+  await uploadRoute(page, tcxRoute());
+  await goToExport(page);
+  await expect(
+    page.getByText("File type is converted, some metadata may get lost"),
+  ).toHaveCount(1);
+
+  const download = await downloadAs(page, "GPX (Universal)");
+  expect(download.suggestedFilename()).toBe("Evening Loop.gpx");
+  const gpx = (await readDownload(download)).toString("utf8");
+  expect(gpx).toContain("<gpx");
+  expect(gpx).toContain("Exampleville");
+});
+
+test("replaces the route from the preview step", async ({ page }) => {
+  await uploadRoute(page, gpxRoute());
+  await expect(
+    page.getByRole("heading", { name: "Route: Morning Ride" }),
+  ).toBeVisible();
+
+  await page
+    .locator('input[type="file"]')
+    .setInputFiles(gpxRoute({ name: "Second Ride", fileName: "second.gpx" }));
+
+  await expect(page).toHaveURL("/route");
+  await expect(
+    page.getByRole("heading", { name: "Route: Second Ride" }),
+  ).toBeVisible();
+});
+
+test("moves between workflow steps with the stepper", async ({ page }) => {
+  await uploadRoute(page, gpxRoute());
+  const stepper = page.getByLabel("Progress Stepper");
+
+  await stepper.getByRole("button", { name: "Export" }).click();
+  await expect(page).toHaveURL("/route/export");
+  await stepper.getByRole("button", { name: "Edit" }).click();
+  await expect(page).toHaveURL("/route/edit");
+  await stepper.getByRole("button", { name: "Upload" }).click();
   await expect(page).toHaveURL("/route");
   await expect(
     page.getByRole("heading", { name: "Route: Morning Ride" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Find signs" }).click();
-
-  await expect(page).toHaveURL("/route/edit");
-  await page.getByRole("button", { name: "Proceed to export" }).click();
-
-  await expect(page).toHaveURL("/route/export");
-  await expect(page.getByText("Sprint Points")).toBeVisible();
-  const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Download Enriched Route" }).click();
-  const downloadedFile = await download;
-
-  expect(downloadedFile.suggestedFilename()).toBe("Morning Ride.gpx");
-  const stream = await downloadedFile.createReadStream();
-  let content = "";
-  for await (const chunk of stream) {
-    content += Buffer.from(chunk as Uint8Array).toString("utf8");
-  }
-  expect(content).toContain("<name>Exampleville</name>");
 });

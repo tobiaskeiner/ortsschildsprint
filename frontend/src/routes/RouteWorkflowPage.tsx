@@ -21,6 +21,7 @@ import {
 } from "../utils/downloadHelper";
 import { getZoomLevel } from "../utils/getZoomLevel";
 import {
+  getExportSnapCandidates,
   getSelectedSnapCandidates,
   isSameSnapCandidate,
   toggleSnapCandidateSelection,
@@ -62,6 +63,10 @@ const RouteWorkflowPage: React.FC = () => {
   const [showProceedWarning, setShowProceedWarning] = useState(false);
   const [format, setFormat] = useState<Formats>("gpx");
   const [error, setError] = useState<string | null>(null);
+  // The route the user deleted signs from. Kept as the route object so a new
+  // upload (a new object) shows the "no signs detected" notice again.
+  const [routeWithDeletedSigns, setRouteWithDeletedSigns] =
+    useState<GeoJSON.FeatureCollection>();
   const navigateTo = (to: string) => {
     void navigate({ to: to as never });
   };
@@ -108,7 +113,8 @@ const RouteWorkflowPage: React.FC = () => {
     step === "edit" &&
     geoContext.parseState === "Done" &&
     geoContext.signs != null &&
-    geoContext.signs.length < 1;
+    geoContext.signs.length < 1 &&
+    routeWithDeletedSigns !== geoContext.geoJson;
 
   const handleSelectCandidate = (
     signId: Sign["id"],
@@ -152,7 +158,7 @@ const RouteWorkflowPage: React.FC = () => {
     try {
       const resolvedSigns: ResolvedSign[] = signs
         .map((sign) => {
-          const primaryPosition = getSelectedSnapCandidates(sign)[0];
+          const primaryPosition = getExportSnapCandidates(sign)[0];
           return primaryPosition
             ? { ...sign, positionOnRoute: primaryPosition }
             : undefined;
@@ -170,7 +176,7 @@ const RouteWorkflowPage: React.FC = () => {
 
       const fitSigns: ResolvedSign[] = signs
         .flatMap((sign) =>
-          getSelectedSnapCandidates(sign).map((positionOnRoute) => ({
+          getExportSnapCandidates(sign).map((positionOnRoute) => ({
             ...sign,
             positionOnRoute,
           })),
@@ -423,6 +429,7 @@ const RouteWorkflowPage: React.FC = () => {
                           ),
                         );
                         setSelectedSignId(undefined);
+                        setRouteWithDeletedSigns(geoContext.geoJson);
                       }}
                       type="button"
                     >

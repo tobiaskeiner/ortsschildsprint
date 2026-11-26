@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { FormattedMessage, useIntl } from "react-intl";
 import type { AppLocale } from "../translations";
 import LocaleSwitcher from "./LocaleSwitcher";
@@ -128,14 +129,18 @@ const AppMenu: React.FC<AppMenuProps> = ({
           {isOpen ? "close" : "menu"}
         </span>
       </button>
-      {isOpen && (
-        <button
-          aria-label={intl.formatMessage({ id: "menu.close" })}
-          className="fixed inset-0 z-40 bg-black/10"
-          onClick={() => setIsOpen(false)}
-          type="button"
-        />
-      )}
+      {isOpen &&
+        // Portalled to <body>: the header's backdrop-filter would otherwise
+        // become the containing block and shrink this overlay to the header.
+        createPortal(
+          <button
+            aria-label={intl.formatMessage({ id: "menu.close" })}
+            className="fixed inset-0 z-40 bg-black/10"
+            onClick={() => setIsOpen(false)}
+            type="button"
+          />,
+          document.body,
+        )}
       {isOpen && (
         <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(calc(100vw-2rem),22rem)] overflow-hidden rounded-[1.75rem] border border-outline-variant/60 bg-surface-container-lowest shadow-2xl ring-1 ring-black/5">
           <div className="border-b border-outline-variant/40 px-5 py-5">
