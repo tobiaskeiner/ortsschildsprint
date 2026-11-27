@@ -152,14 +152,26 @@ export const messages: Record<AppLocale, Record<string, string>> = {
       "Leiste abfahren, um die Stelle auf der Karte zu sehen",
     "preview.profile.hintShort": "Ziehen zeigt die Stelle auf der Karte",
     "preview.profile.noElevation": "Diese Datei enthält keine Höhendaten.",
-    "edit.hint.title": "Schilder prüfen",
-    "edit.hint.description":
-      "Es ist nicht möglich, zuverlässig automatisch zu erkennen, ob ein Schild für die Ortseinfahrt oder -ausfahrt steht. Bitte wähle die Schilder selbst aus.",
+    "edit.intro":
+      "Geh jedes Schild durch. Die Daten unterscheiden nicht zwischen Ortseingang und Ortsausgang, also lösch die Schilder, auf die du nicht sprintest.",
+    "edit.list.title":
+      "{count, plural, one {# Schild} other {# Schilder}} entlang der Route",
+    "edit.sign.delete": "Löschen",
+    "edit.pass.needed": "Durchfahrt wählen",
+    "edit.pass.question":
+      "Du passierst dieses Schild mehrmals. Bei welchen Durchfahrten willst du sprinten?",
+    "edit.pass.label": "Durchfahrt {number}",
+    "edit.pass.formats":
+      "FIT übernimmt alle gewählten Durchfahrten, GPX und TCX nur die erste.",
     "edit.proceed.button": "Weiter zum Export",
-    "edit.proceed.warning.eyebrow": "Nicht alle Schilder geprüft",
+    "edit.noSigns.title": "Keine Ortsschilder entlang dieser Route gefunden",
+    "edit.noSigns.description":
+      "In OpenStreetMap haben wir keine passenden Schilder gefunden. Wenn hier ein Schild stehen sollte, prüfe, ob es in OSM korrekt eingetragen ist. Sobald es dort erfasst ist, wird es bei künftigen Suchen gefunden.",
+    "edit.noSigns.back": "Zurück zum Upload",
+    "edit.noSigns.continue": "Trotzdem zum Export",
     "edit.proceed.warning.title": "Trotzdem fortfahren?",
     "edit.proceed.warning.description":
-      "{count, plural, one {# mehrdeutiges Schild hat noch keine eindeutige Zuordnung zur Route.} other {# mehrdeutige Schilder haben noch keine eindeutige Zuordnung zur Route.}} Wenn du jetzt fortfährst, werden diese Schilder im Export dem ersten Routenverlauf zugeordnet.",
+      "{count, plural, one {Bei # Schild ist noch keine Durchfahrt gewählt. Wenn du fortfährst, wird dort die erste Durchfahrt verwendet.} other {Bei # Schildern ist noch keine Durchfahrt gewählt. Wenn du fortfährst, wird dort jeweils die erste Durchfahrt verwendet.}}",
     "edit.proceed.warning.cancel": "Zurück zum Prüfen",
     "edit.proceed.warning.confirm": "Trotzdem fortfahren",
     "info.distance": "Länge",
@@ -344,14 +356,26 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     "preview.profile.hintFlat": "Move along the bar to see the spot on the map",
     "preview.profile.hintShort": "Drag to find the spot on the map",
     "preview.profile.noElevation": "This file has no elevation data.",
-    "edit.hint.title": "Verify Signs",
-    "edit.hint.description":
-      "It is not possible to reliably automatically detect if a sign is for city entry or exit. Please select the signs yourself.",
+    "edit.intro":
+      "Go through every sign. The data can't tell town entries from exits, so delete the signs you won't sprint for.",
+    "edit.list.title":
+      "{count, plural, one {# sign} other {# signs}} along the route",
+    "edit.sign.delete": "Delete",
+    "edit.pass.needed": "Choose a pass",
+    "edit.pass.question":
+      "You pass this sign more than once. Which passes do you want to sprint on?",
+    "edit.pass.label": "Pass {number}",
+    "edit.pass.formats":
+      "FIT keeps every chosen pass. GPX and TCX keep only the first.",
     "edit.proceed.button": "Proceed to export",
-    "edit.proceed.warning.eyebrow": "Not all signs reviewed",
+    "edit.noSigns.title": "No city limit signs detected along this route",
+    "edit.noSigns.description":
+      "We couldn't find any matching signs in the OpenStreetMap database. If you know a sign should be here, please ensure it is correctly mapped in OSM. Once updated in OpenStreetMap, it will be available for future scans.",
+    "edit.noSigns.back": "Back to Upload",
+    "edit.noSigns.continue": "Continue to Export anyway",
     "edit.proceed.warning.title": "Continue anyway?",
     "edit.proceed.warning.description":
-      "{count, plural, one {# ambiguous sign still has no clear route assignment.} other {# ambiguous signs still have no clear route assignment.}} If you continue now, those signs will be assigned to the first route pass in the export.",
+      "{count, plural, one {# sign still needs a pass chosen. If you continue, its first pass is used.} other {# signs still need a pass chosen. If you continue, their first pass is used.}}",
     "edit.proceed.warning.cancel": "Back to review",
     "edit.proceed.warning.confirm": "Continue anyway",
     "info.distance": "Distance",

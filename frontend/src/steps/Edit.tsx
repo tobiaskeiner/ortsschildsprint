@@ -1,55 +1,131 @@
-import { use, useState } from "react";
-import { GeoJsonContext } from "../context/GeoJsonContext";
-import Map, { Source, Layer, Marker } from "react-map-gl/maplibre";
+import { use, useMemo, useRef, useState } from "react";
+import Map, { Layer, Marker, Source, type MapRef } from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { FormattedMessage, useIntl } from "react-intl";
 import type { Sign, SnapCandidate } from "../../../shared/types";
-import { getZoomLevel } from "../utils/getZoomLevel";
 import NoSignFound from "../components/NoSignFound";
+import { GeoJsonContext } from "../context/GeoJsonContext";
+import { getZoomLevel } from "../utils/getZoomLevel";
+import { buildRouteProfile } from "../utils/routeProfile";
 import {
   getSelectedSnapCandidates,
   isSameSnapCandidate,
   toggleSnapCandidateSelection,
 } from "../utils/signRouteSelection";
-import { FormattedMessage } from "react-intl";
-import MapMarkerIcon from "../components/MapMarkerIcon";
 
 interface EditProps {
-  onContinue: () => void;
+  noSignsFound: boolean;
   onBack: () => void;
+  onContinue: () => void;
+  onSignDeleted: () => void;
 }
 
-const formatDistanceAlongRoute = (distanceAlongRoute: number) =>
-  `${(distanceAlongRoute / 1000).toFixed(2)} km`;
+// the basemap stays light in both themes, so marker ink is fixed
+const MAP_INK = "#1b1b1a";
 
-const Edit: React.FC<EditProps> = (props: EditProps) => {
-  const { onContinue, onBack } = props;
+const ARROW_IMAGE = "route-direction";
+
+/** A white chevron pointing along the line, drawn at 2x for crisp edges. */
+const drawArrow = () => {
+  const size = 28;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d")!;
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  context.beginPath();
+  context.moveTo(10, 7);
+  context.lineTo(18, 14);
+  context.lineTo(10, 21);
+  context.strokeStyle = MAP_INK;
+  context.lineWidth = 7;
+  context.stroke();
+  context.strokeStyle = "#ffffff";
+  context.lineWidth = 3;
+  context.stroke();
+  return context.getImageData(0, 0, size, size);
+};
+
+/** Where the rider first meets the sign; fixes its place in the list. */
+const firstPassAlongRoute = (sign: Sign) => {
+  const result = sign.snapResult;
+  if (result?.status === "ok") return result.position.distanceAlongRoute;
+  if (result?.status === "ambiguous") {
+    return Math.min(...result.candidates.map((c) => c.distanceAlongRoute));
+  }
+  return sign.positionOnRoute?.distanceAlongRoute ?? Number.POSITIVE_INFINITY;
+};
+
+const needsPass = (sign: Sign) =>
+  sign.snapResult?.status === "ambiguous" &&
+  getSelectedSnapCandidates(sign).length === 0;
+
+const prefersReducedMotion = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const Edit: React.FC<EditProps> = ({
+  noSignsFound,
+  onBack,
+  onContinue,
+  onSignDeleted,
+}) => {
   const geoContext = use(GeoJsonContext);
-  const [selectedSignId, setSelectedSignId] = useState<Sign["id"] | undefined>(
-    undefined,
-  );
-  const [showHint, setShowHint] = useState(true);
+  const intl = useIntl();
+  const mapRef = useRef<MapRef>(null);
+  const rowRefs = useRef<Record<number, HTMLLIElement | null>>({});
+  const [selectedSignId, setSelectedSignId] = useState<Sign["id"]>();
   const [showProceedWarning, setShowProceedWarning] = useState(false);
-
-  if (geoContext?.parseState !== "Done") return null;
-
-  const selectedSign = geoContext.signs?.find(
-    (sign) => sign.id === selectedSignId,
+  const [arrowsReady, setArrowsReady] = useState(false);
+  const geoJson = geoContext?.geoJson;
+  const profile = useMemo(
+    () => (geoJson ? buildRouteProfile(geoJson) : null),
+    [geoJson],
+  );
+  const signs = useMemo(
+    () =>
+      [...(geoContext?.signs ?? [])].sort(
+        (a, b) => firstPassAlongRoute(a) - firstPassAlongRoute(b),
+      ),
+    [geoContext?.signs],
   );
 
-  const noSignsFound =
-    geoContext?.parseState === "Done" &&
-    geoContext.signs &&
-    geoContext.signs.length < 1;
+  if (!geoContext || !geoJson) return null;
 
-  const unresolvedAmbiguousSignsCount = (geoContext.signs ?? []).filter(
-    (sign) =>
-      sign.snapResult?.status === "ambiguous" &&
-      getSelectedSnapCandidates(sign).length === 0,
-  ).length;
+  const unresolvedCount = signs.filter(needsPass).length;
 
-  const handleSelectCandidate = (
-    signId: Sign["id"],
-    candidate: SnapCandidate,
-  ) => {
+  const km = (meters: number) =>
+    intl.formatNumber(meters / 1000, {
+      style: "unit",
+      unit: "kilometer",
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
+
+  const select = (sign: Sign | undefined) => {
+    if (!sign || sign.id === selectedSignId) {
+      setSelectedSignId(undefined);
+      return;
+    }
+    setSelectedSignId(sign.id);
+    const map = mapRef.current;
+    map?.flyTo({
+      center: [sign.long, sign.lat],
+      zoom: Math.max(map.getZoom(), 13),
+      duration: prefersReducedMotion() ? 0 : 600,
+    });
+    requestAnimationFrame(() =>
+      rowRefs.current[sign.id]?.scrollIntoView({
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+        // phones: put the row right under the sticky map
+        block: window.matchMedia("(min-width: 1024px)").matches
+          ? "nearest"
+          : "start",
+      }),
+    );
+  };
+
+  const togglePass = (signId: Sign["id"], candidate: SnapCandidate) => {
     geoContext.setSigns(
       geoContext.signs?.map((sign) =>
         sign.id === signId
@@ -59,331 +135,368 @@ const Edit: React.FC<EditProps> = (props: EditProps) => {
     );
   };
 
-  const handleProceed = () => {
-    if (unresolvedAmbiguousSignsCount > 0) {
+  const deleteSign = (sign: Sign) => {
+    const index = signs.findIndex(({ id }) => id === sign.id);
+    const next = signs[index + 1] ?? signs[index - 1];
+    geoContext.setSigns(geoContext.signs?.filter(({ id }) => id !== sign.id));
+    onSignDeleted();
+    // keep the walk-through going: the next sign along the route opens
+    select(next && next.id !== sign.id ? next : undefined);
+  };
+
+  const proceed = () => {
+    if (unresolvedCount > 0) {
       setShowProceedWarning(true);
       return;
     }
-
     onContinue();
   };
 
   return (
-    <>
-      <div className="relative flex min-h-[28rem] w-full flex-1 overflow-hidden rounded-[1.5rem] bg-surface-container-low shadow-xl md:min-h-0 md:rounded-[1.75rem]">
-        <div className="relative min-h-0 flex-1">
-          <Map
-            initialViewState={{
-              longitude: geoContext.center?.geometry.coordinates[0],
-              latitude: geoContext.center?.geometry.coordinates[1],
-              zoom: getZoomLevel(geoContext?.geoJson),
-            }}
-            style={{ width: "100%", height: "100%" }}
-            mapStyle="https://tiles.openfreemap.org/styles/positron"
+    <div className="flex flex-col gap-4 sm:gap-6 lg:h-[calc(100dvh-9rem)] lg:min-h-[36rem]">
+      <header className="min-w-0 shrink-0">
+        <h1 className="font-headline text-3xl leading-[1.05] font-black tracking-tighter text-balance break-words text-on-surface uppercase sm:text-4xl xl:text-5xl">
+          Route: {geoContext.routeName ?? geoContext.rawFileName}
+        </h1>
+        <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary sm:text-base">
+          <FormattedMessage id="edit.intro" />
+        </p>
+      </header>
+
+      <div className="relative grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_23rem] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_26rem]">
+        {/* on phones the map sticks; the page-ground band hides rows scrolling under it */}
+        <div className="sticky top-[4.25rem] z-10 -mx-3 bg-surface px-3 pt-2 pb-3 sm:-mx-5 sm:px-5 md:top-16 md:-mx-8 md:px-8 md:pt-4 lg:static lg:m-0 lg:flex lg:bg-transparent lg:p-0">
+          <div
+            className={`map-quiet-attribution ${selectedSignId == null ? "h-[40vh]" : "h-[30vh]"} min-h-[14rem] w-full overflow-hidden rounded-[1.5rem] bg-surface-container shadow-[0_12px_40px_-24px_rgb(0_0_0/0.25)] md:rounded-[1.75rem] lg:h-auto`}
           >
-            {geoContext.geoJson && (
-              <Source id="route" type="geojson" data={geoContext.geoJson}>
+            <Map
+              ref={mapRef}
+              onLoad={({ target: map }) => {
+                // compact attribution opens expanded on load and covers the route
+                map
+                  .getContainer()
+                  .querySelector(".maplibregl-compact-show")
+                  ?.classList.remove("maplibregl-compact-show");
+                if (!map.hasImage(ARROW_IMAGE)) {
+                  map.addImage(ARROW_IMAGE, drawArrow(), { pixelRatio: 2 });
+                }
+                setArrowsReady(true);
+              }}
+              initialViewState={
+                profile
+                  ? {
+                      bounds: profile.bounds,
+                      fitBoundsOptions: { padding: 48 },
+                    }
+                  : {
+                      longitude: geoContext.center?.geometry.coordinates[0],
+                      latitude: geoContext.center?.geometry.coordinates[1],
+                      zoom: getZoomLevel(geoJson),
+                    }
+              }
+              attributionControl={{ compact: true }}
+              mapStyle="https://tiles.openfreemap.org/styles/positron"
+              style={{ width: "100%", height: "100%" }}
+            >
+              <Source data={geoJson} id="route" type="geojson">
                 <Layer
                   id="route-line"
+                  layout={{ "line-cap": "round", "line-join": "round" }}
+                  paint={{ "line-color": MAP_INK, "line-width": 3.5 }}
                   type="line"
-                  paint={{ "line-color": "#202020", "line-width": 3 }}
                 />
-                <Layer
-                  id="route-arrows"
-                  type="symbol"
-                  layout={{
-                    "symbol-placement": "line",
-                    "symbol-spacing": 80,
-                    "icon-image": "arrow",
-                    "icon-size": 3.5,
-                    "icon-rotate": 0,
-                    "icon-rotation-alignment": "map",
-                    "icon-allow-overlap": true,
-                    "icon-ignore-placement": true,
-                  }}
-                />
+                {arrowsReady && (
+                  <Layer
+                    id="route-arrows"
+                    type="symbol"
+                    layout={{
+                      "symbol-placement": "line",
+                      "symbol-spacing": 90,
+                      "icon-image": ARROW_IMAGE,
+                      "icon-size": 1,
+                      "icon-rotation-alignment": "map",
+                      "icon-allow-overlap": true,
+                      "icon-ignore-placement": true,
+                    }}
+                  />
+                )}
               </Source>
-            )}
-            {(geoContext.signs ?? []).map((sign) => (
-              <Marker
-                key={sign.id}
-                latitude={sign.lat}
-                longitude={sign.long}
-                anchor="bottom"
-                onClick={() => setSelectedSignId(sign.id)}
-                className="hover:cursor-pointer"
-              >
-                <MapMarkerIcon
-                  style={{
-                    ...(sign.snapResult
-                      ? sign.snapResult.status === "ok"
-                        ? { color: "black" }
-                        : { color: "#ba1a1a" }
-                      : { color: "black" }),
-                  }}
-                  className={`transition-transform hover:scale-120 ${selectedSign?.id === sign.id ? "text-error" : ""}`}
-                />
-              </Marker>
-            ))}
-            {selectedSign?.snapResult?.status === "ambiguous" &&
-              selectedSign.snapResult.candidates.map((candidate, index) => {
-                const candidateIsSelected = getSelectedSnapCandidates(
-                  selectedSign,
-                ).some((position) => isSameSnapCandidate(position, candidate));
 
+              {signs.map((sign, index) => {
+                const isSelected = sign.id === selectedSignId;
                 return (
                   <Marker
-                    key={`${selectedSign.id}-${candidate.distanceAlongRoute}`}
-                    latitude={candidate.lat}
-                    longitude={candidate.long}
-                    anchor="center"
+                    key={sign.id}
+                    latitude={sign.lat}
+                    longitude={sign.long}
+                    style={{ zIndex: isSelected ? 2 : 1 }}
                   >
                     <button
-                      type="button"
-                      onClick={() =>
-                        handleSelectCandidate(selectedSign.id, candidate)
-                      }
-                      className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-headline font-black shadow-lg transition-all hover:scale-105 hover:cursor-pointer ${
-                        candidateIsSelected
-                          ? "border-primary-container bg-primary-container text-on-primary-container"
-                          : "border-surface-container-highest bg-surface-container-lowest text-on-surface"
+                      aria-label={sign.tags.name ?? `#${sign.osm_id}`}
+                      aria-pressed={isSelected}
+                      className={`flex items-center justify-center rounded-full font-headline font-bold tabular-nums shadow-[0_2px_6px_rgb(0_0_0/0.35)] transition-transform duration-150 ease-out hover:scale-110 hover:cursor-pointer ${
+                        isSelected
+                          ? "h-10 w-10 border-[3px] border-[#1b1b1a] bg-town-sign text-sm text-[#1b1b1a]"
+                          : needsPass(sign)
+                            ? "h-8 w-8 border-2 border-dashed border-[#1b1b1a] bg-white text-xs text-[#1b1b1a]"
+                            : "h-8 w-8 border-2 border-white bg-[#1b1b1a] text-xs text-white"
                       }`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        select(sign);
+                      }}
+                      type="button"
                     >
                       {index + 1}
                     </button>
                   </Marker>
                 );
               })}
-          </Map>
+            </Map>
+          </div>
+        </div>
 
-          {showHint && (
-            <div className="absolute top-3 z-10 rounded-2xl bg-black/70 font-body text-white backdrop-sm flex flex-row gap-3 items-center p-2 right-3">
-              <p className="text-xs leading-none">
-                <FormattedMessage id="edit.hint.title" />
-                {": Select markers to review or remove"}
-              </p>
-              <button
-                className="cursor-pointer flex items-center justify-center"
-                type="button"
-                onClick={() => setShowHint(false)}
-              >
-                <span className="material-symbols-outlined block">close</span>
-              </button>
-            </div>
-          )}
+        <section
+          aria-labelledby="edit-signs-title"
+          className="flex min-h-0 flex-col rounded-[1.5rem] bg-surface-container-lowest shadow-[0_12px_40px_-24px_rgb(0_0_0/0.25)] md:rounded-[1.75rem]"
+        >
+          <h2
+            className="shrink-0 border-b border-surface-container-high px-5 py-4 font-headline text-base font-bold tracking-tight uppercase sm:px-6"
+            id="edit-signs-title"
+          >
+            <FormattedMessage
+              id="edit.list.title"
+              values={{ count: signs.length }}
+            />
+          </h2>
 
-          {selectedSign && (
-            <div className="absolute inset-x-3 bottom-[5.5rem] z-10 max-h-[16rem] overflow-y-auto rounded-[1.5rem] bg-surface-container-lowest p-3.5 shadow-xl sm:inset-x-4 sm:bottom-28 sm:max-h-[60vh] sm:p-5 md:inset-x-auto md:bottom-auto md:right-6 md:top-6 md:w-[22rem] md:max-h-[calc(100%-3rem)] md:rounded-[1.75rem]">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <h1 className="mb-1 break-words font-headline text-xl font-black leading-none tracking-tight text-on-surface uppercase sm:text-3xl">
-                    {selectedSign.tags.name ?? `#${selectedSign.id}`}
-                  </h1>
-                  <p className="font-headline text-[10px] font-bold tracking-widest text-zinc-500">
-                    OSM SIGN ID: #{selectedSign.osm_id}
-                  </p>
-                </div>
-                <button
-                  className="cursor-pointer p-1 text-on-surface/50 transition-colors hover:text-on-surface"
-                  onClick={() => setSelectedSignId(undefined)}
-                  type="button"
+          <ol className="min-h-0 flex-1 lg:overflow-y-auto">
+            {signs.map((sign, index) => {
+              const isSelected = sign.id === selectedSignId;
+              const result = sign.snapResult;
+              const passes =
+                result?.status === "ambiguous" ? result.candidates : [];
+              const name = sign.tags.name ?? `#${sign.osm_id}`;
+              const panelId = `sign-panel-${sign.id}`;
+
+              return (
+                <li
+                  className={`scroll-mt-[calc(30vh+6rem)] scroll-mb-28 border-b border-surface-container-high transition-colors duration-150 last:border-b-0 lg:scroll-m-0 ${
+                    isSelected ? "bg-surface-container-low" : ""
+                  }`}
+                  key={sign.id}
+                  ref={(element) => {
+                    rowRefs.current[sign.id] = element;
+                  }}
                 >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-
-              <div className="mt-4 flex flex-col gap-3">
-                <div className="flex flex-col gap-1 rounded-2xl bg-surface-container-low p-3 md:p-4">
-                  <div className="mb-1 font-headline text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-                    LAT / LONG
-                  </div>
-                  <div className="font-headline text-xs font-bold leading-tight">
-                    {selectedSign.lat.toFixed(4)} /{" "}
-                    {selectedSign.long.toFixed(4)}
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <a
-                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-surface-container-highest px-4 py-3 font-headline text-xs font-bold uppercase tracking-wider text-on-surface transition-colors hover:cursor-pointer hover:bg-surface-container-high md:py-4 md:text-sm"
-                    href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${selectedSign.lat},${selectedSign.long}`}
-                    rel="noopener"
-                    target="_blank"
-                  >
-                    <span className="material-symbols-outlined">
-                      streetview
-                    </span>
-                    Street View
-                  </a>
                   <button
-                    aria-label="Delete sign"
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-error-container/50 text-error transition-colors hover:cursor-pointer hover:bg-error-container/90 md:h-14 md:w-14"
-                    onClick={() => {
-                      geoContext.setSigns(
-                        geoContext.signs?.filter(
-                          (sign) => sign.id !== selectedSign.id,
-                        ),
-                      );
-                      setSelectedSignId(undefined);
-                    }}
+                    aria-controls={panelId}
+                    aria-expanded={isSelected}
+                    className="grid w-full grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 px-5 py-3.5 text-left transition-colors duration-150 hover:cursor-pointer hover:bg-surface-container-low sm:px-6"
+                    onClick={() => select(sign)}
                     type="button"
                   >
-                    <span className="material-symbols-outlined">delete</span>
-                  </button>
-                </div>
-
-                {selectedSign.snapResult?.status === "ambiguous" && (
-                  <div className="flex flex-col gap-3 rounded-2xl bg-surface-container-low p-3 md:p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="mb-1 font-headline text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-                          Route Matches
-                        </div>
-                        <p className="text-sm leading-snug text-on-surface">
-                          Select every route pass that should trigger this sign.
-                        </p>
-                      </div>
-                      <span className="shrink-0 rounded-full bg-surface-container-lowest px-3 py-1 font-headline text-[10px] font-black tracking-widest text-secondary uppercase">
-                        {getSelectedSnapCandidates(selectedSign).length}/
-                        {selectedSign.snapResult.candidates.length} selected
+                    <span
+                      aria-hidden="true"
+                      className={`flex h-8 w-8 items-center justify-center rounded-full font-headline text-xs font-bold tabular-nums ${
+                        isSelected
+                          ? "border-2 border-[#1b1b1a] bg-town-sign text-[#1b1b1a]"
+                          : needsPass(sign)
+                            ? "border-2 border-dashed border-on-surface text-on-surface"
+                            : "bg-on-surface text-surface"
+                      }`}
+                    >
+                      {index + 1}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate font-headline text-base font-bold uppercase">
+                        {name}
                       </span>
-                    </div>
-                    <p className="rounded-xl bg-surface-container-lowest px-3 py-2 text-[11px] leading-snug text-secondary">
-                      Multiple selections are preserved in FIT export. GPX and
-                      TCX fall back to the first selected route pass.
-                    </p>
-                    <div className="flex flex-col gap-2">
-                      {selectedSign.snapResult.candidates.map(
-                        (candidate, index) => {
-                          const candidateIsSelected = getSelectedSnapCandidates(
-                            selectedSign,
-                          ).some((position) =>
-                            isSameSnapCandidate(position, candidate),
-                          );
+                      {needsPass(sign) && !isSelected && (
+                        <span className="block text-xs text-secondary">
+                          <FormattedMessage id="edit.pass.needed" />
+                        </span>
+                      )}
+                    </span>
+                    <span className="font-headline text-sm font-bold whitespace-nowrap text-secondary tabular-nums">
+                      {passes.length > 1
+                        ? passes
+                            .map((pass) => km(pass.distanceAlongRoute))
+                            .join(" · ")
+                        : km(firstPassAlongRoute(sign))}
+                    </span>
+                  </button>
 
-                          return (
-                            <button
-                              key={`${selectedSign.id}-${candidate.distanceAlongRoute}`}
-                              type="button"
-                              onClick={() =>
-                                handleSelectCandidate(
-                                  selectedSign.id,
-                                  candidate,
-                                )
-                              }
-                              className={`group flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-all hover:cursor-pointer ${
-                                candidateIsSelected
-                                  ? "bg-primary-container text-on-primary-container shadow-lg shadow-primary/15"
-                                  : "bg-surface-container-lowest text-on-surface ring-1 ring-outline-variant/15 hover:bg-surface-container"
-                              }`}
-                            >
-                              <div
-                                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-[10px] font-headline font-black uppercase transition-all ${
-                                  candidateIsSelected
-                                    ? "border-on-primary-container bg-on-primary-container text-primary-container"
-                                    : "border-secondary text-secondary"
-                                }`}
-                              >
-                                {candidateIsSelected ? "ON" : "OFF"}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="font-headline text-sm font-black uppercase tracking-wide">
-                                  Route Pass {index + 1}
-                                </p>
-                                <p
-                                  className={`text-xs ${
-                                    candidateIsSelected
-                                      ? "text-on-primary-container/80"
-                                      : "text-secondary"
+                  {isSelected && (
+                    <div
+                      className="flex flex-col gap-4 px-5 pb-4 sm:px-6 sm:pl-[4.25rem]"
+                      id={panelId}
+                    >
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <a
+                          className="flex items-center justify-center gap-2 rounded-full bg-surface-container-high px-4 py-3 whitespace-nowrap font-headline text-xs font-bold tracking-[0.06em] text-on-surface uppercase transition-colors duration-150 hover:bg-surface-container-highest"
+                          href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${sign.lat},${sign.long}`}
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="material-symbols-outlined text-lg"
+                          >
+                            streetview
+                          </span>
+                          Street View
+                        </a>
+                        <button
+                          className="flex items-center justify-center gap-2 rounded-full px-4 py-3 whitespace-nowrap font-headline text-xs font-bold tracking-[0.06em] text-on-surface uppercase ring-1 ring-outline-variant transition-colors duration-150 hover:cursor-pointer hover:bg-surface-container-high"
+                          onClick={() => deleteSign(sign)}
+                          type="button"
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="material-symbols-outlined text-lg"
+                          >
+                            delete
+                          </span>
+                          <FormattedMessage id="edit.sign.delete" />
+                        </button>
+                      </div>
+                      {passes.length > 1 && (
+                        <fieldset>
+                          <legend className="mb-2 text-sm leading-snug text-on-surface">
+                            <FormattedMessage id="edit.pass.question" />
+                          </legend>
+                          <div className="grid grid-cols-2 gap-2">
+                            {passes.map((candidate, passIndex) => {
+                              const chosen = getSelectedSnapCandidates(
+                                sign,
+                              ).some((position) =>
+                                isSameSnapCandidate(position, candidate),
+                              );
+                              return (
+                                <label
+                                  className={`flex items-center gap-2 rounded-2xl px-3 py-2.5 transition-colors duration-150 hover:cursor-pointer ${
+                                    chosen
+                                      ? "bg-on-surface text-surface"
+                                      : "bg-surface-container-lowest text-on-surface ring-1 ring-outline-variant hover:bg-surface-container"
                                   }`}
+                                  key={candidate.distanceAlongRoute}
                                 >
-                                  {formatDistanceAlongRoute(
-                                    candidate.distanceAlongRoute,
-                                  )}{" "}
-                                  from start
-                                </p>
-                              </div>
-                              <div
-                                className={`font-headline text-[10px] font-black tracking-widest uppercase ${
-                                  candidateIsSelected
-                                    ? "text-on-primary-container"
-                                    : "text-zinc-400"
-                                }`}
-                              >
-                                {candidateIsSelected ? "Included" : "Add"}
-                              </div>
-                            </button>
-                          );
-                        },
+                                  <input
+                                    checked={chosen}
+                                    className="h-4 w-4 shrink-0 accent-town-sign"
+                                    onChange={() =>
+                                      togglePass(sign.id, candidate)
+                                    }
+                                    type="checkbox"
+                                  />
+                                  <span className="min-w-0 leading-tight">
+                                    <span className="block font-headline text-xs font-bold uppercase">
+                                      <FormattedMessage
+                                        id="edit.pass.label"
+                                        values={{ number: passIndex + 1 }}
+                                      />
+                                    </span>
+                                    <span className="block font-headline text-sm font-bold tabular-nums">
+                                      {km(candidate.distanceAlongRoute)}
+                                    </span>
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                          <p className="mt-2 text-xs leading-snug text-secondary">
+                            <FormattedMessage id="edit.pass.formats" />
+                          </p>
+                        </fieldset>
                       )}
                     </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+                  )}
+                </li>
+              );
+            })}
+          </ol>
 
-          <div className="absolute inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-[60] sm:inset-x-4 sm:bottom-[calc(1rem+env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-6 md:right-6 md:z-10">
+          {/* phones: the pill stops floating while a sign is open, so its passes stay visible */}
+          <div
+            className={`z-10 shrink-0 p-3 sm:p-4 lg:static lg:border-t lg:border-surface-container-high ${
+              selectedSignId == null
+                ? "sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] md:bottom-4"
+                : ""
+            }`}
+          >
             <button
-              onClick={handleProceed}
-              className="group flex w-full items-center justify-center gap-3 rounded-full bg-zinc-950 px-5 py-3.5 font-headline text-xs font-black uppercase tracking-[0.18em] text-white shadow-lg transition-transform hover:cursor-pointer hover:scale-[1.02] active:scale-95 md:min-w-[18rem] md:px-10 md:py-5 md:text-sm"
+              className="group flex w-full items-center justify-center gap-3 rounded-full bg-on-surface px-7 py-4 font-headline text-sm font-bold tracking-[0.08em] text-surface uppercase shadow-[0_10px_24px_-12px_rgb(0_0_0/0.5)] transition-[background-color,transform] duration-200 ease-out hover:cursor-pointer hover:bg-on-surface/85 active:scale-[0.98] sm:text-base"
+              onClick={proceed}
               type="button"
             >
               <FormattedMessage id="edit.proceed.button" />
               <span
-                className="material-symbols-outlined text-primary-container transition-transform group-hover:translate-x-2"
-                data-icon="arrow_forward"
+                aria-hidden="true"
+                className="material-symbols-outlined text-xl transition-transform duration-200 ease-out group-hover:translate-x-1"
               >
                 arrow_forward
               </span>
             </button>
           </div>
+        </section>
 
-          {showProceedWarning && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 p-3 sm:p-4">
-              <div className="max-h-[calc(100%-1.5rem)] w-full max-w-lg overflow-y-auto rounded-[2rem] bg-surface-container-lowest p-6 shadow-2xl">
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <p className="font-headline text-[10px] font-black tracking-[0.3em] text-error uppercase">
-                      <FormattedMessage id="edit.proceed.warning.eyebrow" />
-                    </p>
-                    <h2 className="mt-2 font-headline text-3xl font-black leading-none text-on-surface uppercase">
-                      <FormattedMessage id="edit.proceed.warning.title" />
-                    </h2>
-                  </div>
-                  <p className="text-sm leading-relaxed text-secondary">
-                    <FormattedMessage
-                      id="edit.proceed.warning.description"
-                      values={{ count: unresolvedAmbiguousSignsCount }}
-                    />
-                  </p>
-                  <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setShowProceedWarning(false)}
-                      className="rounded-full border border-outline-variant/30 px-5 py-3 font-headline text-sm font-black tracking-widest text-on-surface uppercase transition-colors hover:cursor-pointer hover:bg-surface-container"
-                    >
-                      <FormattedMessage id="edit.proceed.warning.cancel" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowProceedWarning(false);
-                        onContinue();
-                      }}
-                      className="rounded-full bg-zinc-950 px-5 py-3 font-headline text-sm font-black tracking-widest text-white uppercase transition-transform hover:cursor-pointer hover:scale-[1.01] active:scale-95"
-                    >
-                      <FormattedMessage id="edit.proceed.warning.confirm" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        {noSignsFound && (
+          <div className="fixed inset-0 z-[70]">
+            <NoSignFound onBack={onBack} onContinue={onContinue} />
+          </div>
+        )}
       </div>
-      {noSignsFound && <NoSignFound onBack={onBack} onContinue={onContinue} />}
-    </>
+
+      {showProceedWarning && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") setShowProceedWarning(false);
+          }}
+        >
+          <div
+            aria-labelledby="edit-warning-title"
+            aria-modal="true"
+            className="w-full max-w-md rounded-[1.75rem] bg-surface-container-lowest p-6 shadow-[0_24px_60px_-20px_rgb(0_0_0/0.5)] sm:p-8"
+            role="dialog"
+          >
+            <h2
+              className="font-headline text-2xl leading-tight font-black tracking-tight text-on-surface uppercase sm:text-3xl"
+              id="edit-warning-title"
+            >
+              <FormattedMessage id="edit.proceed.warning.title" />
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-secondary">
+              <FormattedMessage
+                id="edit.proceed.warning.description"
+                values={{ count: unresolvedCount }}
+              />
+            </p>
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <button
+                autoFocus
+                className="rounded-full px-5 py-3 font-headline text-sm font-bold tracking-[0.06em] text-on-surface uppercase ring-1 ring-outline-variant transition-colors duration-150 hover:cursor-pointer hover:bg-surface-container"
+                onClick={() => setShowProceedWarning(false)}
+                type="button"
+              >
+                <FormattedMessage id="edit.proceed.warning.cancel" />
+              </button>
+              <button
+                className="rounded-full bg-on-surface px-5 py-3 font-headline text-sm font-bold tracking-[0.06em] text-surface uppercase transition-colors duration-150 hover:cursor-pointer hover:bg-on-surface/85"
+                onClick={() => {
+                  setShowProceedWarning(false);
+                  onContinue();
+                }}
+                type="button"
+              >
+                <FormattedMessage id="edit.proceed.warning.confirm" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -18,6 +18,9 @@ const findSigns = async (page: Page) => {
   await expect(page).toHaveURL("/route/edit");
 };
 
+const signRow = (page: Page, name: string) =>
+  page.locator("section ol").getByRole("button", { name });
+
 const sprintPoints = (page: Page) =>
   page.getByText("Sprint Points", { exact: true }).locator("..");
 
@@ -29,22 +32,22 @@ test("shows sign details and removes a deleted sign from the export", async ({
   await findSigns(page);
 
   await expect(signMarkers(page)).toHaveCount(1);
-  await signMarkers(page).click();
   await expect(
-    page.getByRole("heading", { name: "Exampleville" }),
+    page.getByRole("heading", { name: "1 sign along the route" }),
   ).toBeVisible();
-  await expect(page.getByText("OSM SIGN ID: #123")).toBeVisible();
-  await expect(page.getByText("50.0050 / 8.0050")).toBeVisible();
+  await signMarkers(page).click();
+  await expect(signRow(page, "Exampleville")).toHaveAttribute(
+    "aria-expanded",
+    "true",
+  );
   await expect(page.getByRole("link", { name: "Street View" })).toHaveAttribute(
     "href",
     /viewpoint=50\.005,8\.005$/,
   );
 
-  await page.getByRole("button", { name: "Delete sign" }).click();
+  await page.getByRole("button", { name: "Delete", exact: true }).click();
   await expect(signMarkers(page)).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Exampleville" })).toHaveCount(
-    0,
-  );
+  await expect(signRow(page, "Exampleville")).toHaveCount(0);
 
   // Removing signs by hand is not the same as finding none.
   await expect(
@@ -123,7 +126,9 @@ test.describe("a sign passed twice on an out-and-back route", () => {
       page.getByRole("heading", { name: "Continue anyway?" }),
     ).toBeVisible();
     await expect(
-      page.getByText("1 ambiguous sign still has no clear route assignment."),
+      page.getByText(
+        "1 sign still needs a pass chosen. If you continue, its first pass is used.",
+      ),
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Back to review" }).click();
@@ -151,16 +156,16 @@ test.describe("a sign passed twice on an out-and-back route", () => {
   });
 
   test("exports every selected route pass to FIT", async ({ page }) => {
+    await expect(page.getByText("Choose a pass")).toBeVisible();
     await signMarkers(page).click();
-    await expect(
-      page.getByRole("heading", { name: "Twiceburg" }),
-    ).toBeVisible();
-    await expect(page.getByText("0/2 selected")).toBeVisible();
+    await expect(signRow(page, "Twiceburg")).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
 
-    await page.getByRole("button", { name: /^OFF Route Pass 1/ }).click();
-    await expect(page.getByText("1/2 selected")).toBeVisible();
-    await page.getByRole("button", { name: /^OFF Route Pass 2/ }).click();
-    await expect(page.getByText("2/2 selected")).toBeVisible();
+    await page.getByRole("checkbox", { name: /^Pass 1/ }).check();
+    await expect(page.getByText("Choose a pass")).toHaveCount(0);
+    await page.getByRole("checkbox", { name: /^Pass 2/ }).check();
 
     // Resolved, so the warning no longer interrupts.
     await page.getByRole("button", { name: "Proceed to export" }).click();
@@ -182,10 +187,10 @@ test.describe("a sign passed twice on an out-and-back route", () => {
   });
 
   test("exports only the first selected pass to GPX", async ({ page }) => {
-    await signMarkers(page).click();
-    await page.getByRole("button", { name: /^OFF Route Pass 2/ }).click();
-    await page.getByRole("button", { name: /^OFF Route Pass 1/ }).click();
-    await expect(page.getByText("2/2 selected")).toBeVisible();
+    await signRow(page, "Twiceburg").click();
+    await page.getByRole("checkbox", { name: /^Pass 2/ }).check();
+    await page.getByRole("checkbox", { name: /^Pass 1/ }).check();
+    await expect(page.getByRole("checkbox", { checked: true })).toHaveCount(2);
     await page.getByRole("button", { name: "Proceed to export" }).click();
 
     const download = page.waitForEvent("download");
