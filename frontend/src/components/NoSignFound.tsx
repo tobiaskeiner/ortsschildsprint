@@ -1,3 +1,5 @@
+import { FormattedMessage } from "react-intl";
+
 interface NoSignFoundProps {
   onBack: () => void;
   onContinue: () => void;
@@ -30,14 +32,11 @@ const NoSignFound: React.FC<NoSignFoundProps> = (props) => {
         </div>
 
         <h1 className="mb-4 font-headline text-2xl font-bold tracking-tight text-on-surface sm:text-3xl">
-          No city limit signs detected along this route
+          <FormattedMessage id="edit.noSigns.title" />
         </h1>
 
         <p className="mb-8 max-w-md text-sm leading-relaxed text-on-surface-variant sm:mb-10 sm:text-base">
-          We couldn't find any matching signs in the OpenStreetMap database. If
-          you know a sign should be here, please ensure it is correctly mapped
-          in OSM. Once updated in OpenStreetMap, it will be available for future
-          scans.
+          <FormattedMessage id="edit.noSigns.description" />
         </p>
 
         <div className="flex w-full flex-col gap-4">
@@ -48,7 +47,7 @@ const NoSignFound: React.FC<NoSignFoundProps> = (props) => {
             <span className="material-symbols-outlined" data-icon="upload">
               upload
             </span>
-            Back to Upload
+            <FormattedMessage id="edit.noSigns.back" />
           </button>
           <button
             onClick={onContinue}
@@ -60,14 +59,8 @@ const NoSignFound: React.FC<NoSignFoundProps> = (props) => {
             >
               arrow_forward
             </span>
-            Continue to Export anyway
+            <FormattedMessage id="edit.noSigns.continue" />
           </button>
-        </div>
-
-        <div className="mt-6 rounded-full bg-surface-container-low px-4 py-2 sm:mt-8">
-          <p className="text-xs uppercase tracking-[0.05em] text-on-surface-variant/60">
-            ERROR: NO_SIGNS_FOUND
-          </p>
         </div>
       </div>
     </div>
