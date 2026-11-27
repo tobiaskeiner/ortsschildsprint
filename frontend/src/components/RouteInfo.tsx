@@ -11,7 +11,10 @@ const RouteInfo: React.FC = () => {
   return (
     <div className="flex flex-col gap-3 md:gap-6">
       <h1 className="break-words font-headline text-2xl font-black leading-tight tracking-tighter text-on-surface uppercase sm:text-4xl md:text-6xl xl:text-7xl">
-        Route: {geoContext.routeName ?? "Route01"}
+        <FormattedMessage
+          id="info.route.title"
+          values={{ name: geoContext.routeName ?? "Route01" }}
+        />
       </h1>
       <div className="grid grid-cols-3 gap-2 sm:gap-4 xl:grid-cols-3">
         <div className="rounded-[1rem] bg-surface-container-lowest p-3 shadow-lg sm:rounded-[1.5rem] sm:p-6">
@@ -36,7 +39,7 @@ const RouteInfo: React.FC = () => {
         </div>
         <div className="rounded-[1rem] bg-surface-container-lowest p-3 shadow-lg sm:rounded-[1.5rem] sm:p-6">
           <p className="mb-1 font-headline text-[10px] font-bold tracking-[0.12em] text-secondary uppercase sm:mb-2 sm:text-xs">
-            Status
+            <FormattedMessage id="info.status.label" />
           </p>
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="h-3 w-3 rounded-full bg-tertiary-container animate-pulse sm:h-4 sm:w-4"></span>

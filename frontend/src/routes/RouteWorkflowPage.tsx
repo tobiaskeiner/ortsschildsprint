@@ -69,7 +69,7 @@ const RouteWorkflowPage: React.FC = () => {
           <div className="flex flex-col items-center gap-4">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-container border-t-primary" />
             <p className="text-center font-medium text-secondary">
-              Processing file...
+              <FormattedMessage id="upload.processing" />
             </p>
           </div>
         </div>

@@ -37,7 +37,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-surface-container-lowest/80 shadow-lg backdrop-blur-xl">
       <nav
-        aria-label="Navigation"
+        aria-label={intl.formatMessage({ id: "navbar.navigation.aria" })}
         className={`mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 py-3 sm:px-6 md:h-16 md:px-8 md:py-0 ${desktopLayoutClassName}`}
       >
         <div className="min-w-0 flex-1 md:flex-none md:overflow-hidden">
