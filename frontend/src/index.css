@@ -340,7 +340,7 @@ body {
      and keeps running behind them. */
   .home-map {
     position: relative;
-    order: 1;
+    order: 2;
     width: 100%;
     height: auto;
     flex: 1 0 9rem;
@@ -453,16 +453,19 @@ body {
     margin-top: 0.0625rem;
   }
 
-  /* Strava is a secondary path: just the connect action, on the map. */
+  /* Strava is a secondary path: just the connect action. On phones and
+     tablets it sits right below the route panel so it is never pushed off
+     the bottom of the screen; on desktop it is pinned to the map's corner. */
   .home-strava-link {
     position: relative;
     z-index: 1;
-    order: 2;
+    order: 1;
     display: inline-flex;
     min-height: 3rem;
     align-items: center;
     align-self: flex-start;
     gap: 0.5rem;
+    margin-top: 0.75rem;
     border-radius: 1rem;
     padding: 0.875rem 1.25rem;
     background: var(--color-strava-orange);
@@ -533,6 +536,7 @@ body {
       grid-area: 1 / 1;
       align-self: end;
       justify-self: end;
+      margin-top: 0;
     }
 
     .home-map {
