@@ -16,6 +16,16 @@ export const getSelectedSnapCandidates = (sign: Sign): SnapCandidate[] => {
   return sign.positionOnRoute ? [sign.positionOnRoute] : [];
 };
 
+/** Where the rider first meets the sign; fixes its place in route order. */
+export const firstPassAlongRoute = (sign: Sign) => {
+  const result = sign.snapResult;
+  if (result?.status === "ok") return result.position.distanceAlongRoute;
+  if (result?.status === "ambiguous") {
+    return Math.min(...result.candidates.map((c) => c.distanceAlongRoute));
+  }
+  return sign.positionOnRoute?.distanceAlongRoute ?? Number.POSITIVE_INFINITY;
+};
+
 /**
  * Route passes to export for a sign. An ambiguous sign nobody reviewed falls
  * back to its first pass, as the proceed warning tells the user.

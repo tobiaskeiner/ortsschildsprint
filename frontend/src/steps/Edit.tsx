@@ -8,6 +8,7 @@ import { GeoJsonContext } from "../context/GeoJsonContext";
 import { getZoomLevel } from "../utils/getZoomLevel";
 import { buildRouteProfile } from "../utils/routeProfile";
 import {
+  firstPassAlongRoute,
   getSelectedSnapCandidates,
   isSameSnapCandidate,
   toggleSnapCandidateSelection,
@@ -45,16 +46,6 @@ const drawArrow = () => {
   context.lineWidth = 3;
   context.stroke();
   return context.getImageData(0, 0, size, size);
-};
-
-/** Where the rider first meets the sign; fixes its place in the list. */
-const firstPassAlongRoute = (sign: Sign) => {
-  const result = sign.snapResult;
-  if (result?.status === "ok") return result.position.distanceAlongRoute;
-  if (result?.status === "ambiguous") {
-    return Math.min(...result.candidates.map((c) => c.distanceAlongRoute));
-  }
-  return sign.positionOnRoute?.distanceAlongRoute ?? Number.POSITIVE_INFINITY;
 };
 
 const needsPass = (sign: Sign) =>
