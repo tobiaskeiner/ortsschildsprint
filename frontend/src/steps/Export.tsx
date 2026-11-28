@@ -225,7 +225,7 @@ const Export: React.FC<ExportProps> = ({ onBack, onUploadNew }) => {
   );
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-6 lg:h-[calc(100dvh-9rem)] lg:min-h-[38rem]">
+    <div className="flex flex-col gap-4 sm:gap-6 lg:max-h-[max(38rem,calc(100dvh-9rem))]">
       <header className="flex min-w-0 shrink-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
         <div className="min-w-0">
           <h1 className="font-headline text-3xl leading-[1.05] font-black tracking-tighter text-balance break-words text-on-surface uppercase sm:text-4xl xl:text-5xl">
@@ -256,7 +256,7 @@ const Export: React.FC<ExportProps> = ({ onBack, onUploadNew }) => {
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-6">
         <section
           aria-labelledby="export-file-name"
-          className={`${panelClass} grid min-h-0 grid-cols-1 overflow-hidden md:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)]`}
+          className={`${panelClass} grid min-h-0 grid-cols-1 overflow-hidden md:grid-cols-[14rem_minmax(0,1fr)] lg:min-h-[26rem] xl:grid-cols-[17rem_minmax(0,1fr)]`}
         >
           <div className="map-quiet-attribution h-60 bg-surface-container sm:h-64 md:h-auto">
             <Map
@@ -400,7 +400,7 @@ const Export: React.FC<ExportProps> = ({ onBack, onUploadNew }) => {
         </section>
 
         <section
-          className={`${panelClass} flex flex-col gap-5 p-5 sm:p-7 lg:min-h-0 ${isEmpty ? "order-first lg:order-none lg:self-start" : ""}`}
+          className={`${panelClass} flex flex-col gap-5 p-5 sm:p-7 lg:self-start ${isEmpty ? "order-first lg:order-none" : ""}`}
         >
           {isEmpty ? (
             <>
@@ -521,7 +521,7 @@ const Export: React.FC<ExportProps> = ({ onBack, onUploadNew }) => {
                 <ErrorAlert description={<FormattedMessage id={error} />} />
               )}
 
-              <div className="mt-auto hidden lg:block">{downloadButton}</div>
+              <div className="hidden pt-1 lg:block">{downloadButton}</div>
             </form>
           )}
         </section>
