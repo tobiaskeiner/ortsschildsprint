@@ -34,11 +34,12 @@ to build a personal collection of every sign you've ridden past.
 
 ## How it works
 
-```mermaid
-flowchart LR
-    A["<b>1. Upload</b><br/>GPX / TCX / FIT<br/>parsed in browser"] --> B["<b>2. Match</b><br/>signs near route<br/>via bounding box"]
-    B --> C["<b>3. Review</b><br/>on the map<br/>keep or remove"]
-    C --> D["<b>4. Export</b><br/>GPX / TCX / FIT<br/>with signs"]
+```txt
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│ 1. Upload        │ ──> │ 2. Match         │ ──> │ 3. Review        │ ──> │ 4. Export        │
+│ GPX/TCX/FIT      │     │ signs near route │     │ on the map       │     │ GPX/TCX/FIT      │
+│ (in browser)     │     │ (bounding box)   │     │ keep / remove    │     │ with signs       │
+└──────────────────┘     └──────────────────┘     └──────────────────┘     └──────────────────┘
 ```
 
 1. **Upload** – the route file is parsed entirely in your browser.
