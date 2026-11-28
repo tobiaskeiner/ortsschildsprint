@@ -19,6 +19,10 @@
 </p>
 
 <p align="center">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white" />
+  <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-f38020?logo=cloudflare&logoColor=white" />
+  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-PostGIS-3ecf8e?logo=supabase&logoColor=white" />
   <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue" />
 </p>
 
