@@ -45,7 +45,7 @@ export const privacyPolicySections: PrivacyPolicySection[] = [
   {
     title: "6. Optional Strava and External Links",
     paragraphs: [
-      "When you connect Strava, Ortschildsprint redirects you to Strava for authorization and calls Strava's API to retrieve the rides needed for the feature. The map's Street View button opens Google Maps only after you choose it. No analytics, advertising networks, or social-media plugins are used.",
+      "When you connect Strava, Ortsschildsprint redirects you to Strava for authorization and calls Strava's API to retrieve the rides needed for the feature. The map's Street View button opens Google Maps only after you choose it. No analytics, advertising networks, or social-media plugins are used.",
     ],
   },
   {

@@ -64,8 +64,8 @@ const appendCollectionSummary = (
   newSignCount: number,
 ) => {
   const signLabel = newSignCount === 1 ? "sign" : "signs";
-  const summary = `🪧 Ortschildsprint: ${newSignCount} new city limit ${signLabel} collected.`;
-  return `${(description ?? "").replace(/\n*🪧 Ortschildsprint:.*$/s, "").trimEnd()}\n\n${summary}`;
+  const summary = `🪧 Ortsschildsprint: ${newSignCount} new city limit ${signLabel} collected.`;
+  return `${(description ?? "").replace(/\n*🪧 Orts?schildsprint:.*$/s, "").trimEnd()}\n\n${summary}`;
 };
 
 const getMatchedOsmIds = async (
