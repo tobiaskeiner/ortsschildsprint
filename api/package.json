@@ -8,6 +8,7 @@
     "test": "wrangler deploy --dry-run",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "refresh:city-limit-signs": "node --env-file=.env scripts/refresh-city-limit-signs.mjs",
+    "compute:sign-directions": "node --env-file=.env scripts/compute-sign-directions.mjs",
     "strava:webhook": "node --env-file=.env scripts/strava-webhook-subscription.mjs",
     "lint": "pnpm exec eslint src",
     "prettier:check": "pnpm exec prettier . --check",

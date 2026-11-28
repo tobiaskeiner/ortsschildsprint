@@ -93,9 +93,44 @@ app.post(
       max_long: bounds.maxLong,
     });
     if (error) throw new Error(error.message);
-    return c.json(data);
+    return c.json(await withDirections(data ?? []));
   },
 );
+
+type SignRow = { osm_id: number };
+type DirectionRow = {
+  osm_id: number;
+  inside_bearing: number;
+  confidence: "high" | "low";
+};
+
+// Directions are an optional enrichment: without them the frontend falls back
+// to letting the rider review every sign, so a failed lookup is not an error.
+async function withDirections<Sign extends SignRow>(signs: Sign[]) {
+  if (signs.length === 0) return signs;
+  const { data, error } = await supabase.rpc("sign_directions_by_osm_ids", {
+    osm_ids: signs.map((sign) => sign.osm_id),
+  });
+  if (error) {
+    console.error("Sign direction lookup failed", error);
+    return signs;
+  }
+  const byOsmId = new Map(
+    ((data ?? []) as DirectionRow[]).map((row) => [row.osm_id, row]),
+  );
+  return signs.map((sign) => {
+    const direction = byOsmId.get(sign.osm_id);
+    return direction
+      ? {
+          ...sign,
+          direction: {
+            insideBearing: direction.inside_bearing,
+            confidence: direction.confidence,
+          },
+        }
+      : sign;
+  });
+}
 
 export default {
   fetch: app.fetch,

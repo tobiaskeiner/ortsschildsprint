@@ -200,3 +200,122 @@ test.describe("a sign passed twice on an out-and-back route", () => {
     expect(gpx.match(/<wpt /g)).toHaveLength(1);
   });
 });
+
+test.describe("detected town entries and exits", () => {
+  // STRAIGHT_TRACK heads north-east, about 33° from north
+  const entry = { insideBearing: 33, confidence: "high" as const };
+  const exit = { insideBearing: 213, confidence: "high" as const };
+
+  test("keeps a detected entry", async ({ page }) => {
+    await mockSigns(page, [{ ...EXAMPLEVILLE, direction: entry }]);
+    await uploadRoute(page, gpxRoute());
+    await findSigns(page);
+
+    await expect(page.getByText("Town entry")).toBeVisible();
+    await expect(
+      page.getByText(/We've left town exits out of the export/),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Proceed to export" }).click();
+    await expect(page).toHaveURL("/route/export");
+    await expect(page.getByRole("button", { name: /^Download/ })).toBeVisible();
+  });
+
+  test("skips a detected exit until it is added back", async ({ page }) => {
+    await mockSigns(page, [{ ...EXAMPLEVILLE, direction: exit }]);
+    await uploadRoute(page, gpxRoute());
+    await findSigns(page);
+
+    await expect(page.getByText("Town exit · not exported")).toBeVisible();
+    await page.getByRole("button", { name: "Proceed to export" }).click();
+    await expectEmptyExport(page);
+
+    await page.getByRole("button", { name: "Back to review" }).click();
+    await page
+      .getByRole("button", { name: "Add Exampleville back to the export" })
+      .click();
+    await expect(page.getByText("Town exit", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Proceed to export" }).click();
+    await page.getByRole("radio", { name: "gpx" }).check();
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download .gpx" }).click();
+    const gpx = (await readDownload(await download)).toString("utf8");
+    expect(gpx).toContain("<name>Exampleville</name>");
+  });
+
+  test("chooses the entering pass of a sign passed twice", async ({ page }) => {
+    // inside lies north: the outbound leg enters, the way back leaves
+    await mockSigns(page, [
+      {
+        ...TWICE_PASSED_SIGN,
+        direction: { insideBearing: 0, confidence: "high" },
+      },
+    ]);
+    await uploadRoute(
+      page,
+      gpxRoute({ name: "Out and Back", points: OUT_AND_BACK_TRACK }),
+    );
+    await findSigns(page);
+
+    await expect(page.getByText("Choose a pass")).toHaveCount(0);
+    await signRow(page, "Twiceburg").click();
+    await expect(
+      page.getByRole("checkbox", { name: /^Pass 1.*Town entry/ }),
+    ).toBeChecked();
+    await expect(
+      page.getByRole("checkbox", { name: /^Pass 2.*Town exit/ }),
+    ).not.toBeChecked();
+
+    // resolved, so no warning before the export
+    await page.getByRole("button", { name: "Proceed to export" }).click();
+    await expect(page).toHaveURL("/route/export");
+  });
+
+  test("flags a sign passed twice when one pass is unclear", async ({
+    page,
+  }) => {
+    // north through the sign (entry), later west across it (perpendicular)
+    await mockSigns(page, [
+      {
+        ...TWICE_PASSED_SIGN,
+        direction: { insideBearing: 0, confidence: "high" },
+      },
+    ]);
+    await uploadRoute(
+      page,
+      gpxRoute({
+        name: "Crossing",
+        points: [
+          [50.0, 8.0],
+          [50.01, 8.0],
+          [50.005, 8.003],
+          [50.005, 7.997],
+        ],
+      }),
+    );
+    await findSigns(page);
+
+    await expect(
+      page.getByText("Direction unclear, please check"),
+    ).toBeVisible();
+    await signRow(page, "Twiceburg").click();
+    await expect(
+      page.getByRole("checkbox", { name: /^Pass 1.*Town entry/ }),
+    ).toBeChecked();
+    await expect(
+      page.getByRole("checkbox", { name: /^Pass 2.*Direction unclear/ }),
+    ).not.toBeChecked();
+  });
+
+  test("leaves a low-confidence sign to the rider", async ({ page }) => {
+    await mockSigns(page, [
+      { ...EXAMPLEVILLE, direction: { ...exit, confidence: "low" } },
+    ]);
+    await uploadRoute(page, gpxRoute());
+    await findSigns(page);
+
+    await expect(
+      page.getByText(/The data can't tell town entries/),
+    ).toBeVisible();
+    await expect(page.getByText(/Town exit/)).toHaveCount(0);
+  });
+});

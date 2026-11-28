@@ -3,14 +3,19 @@ import { use } from "react";
 import { GeoJsonContext } from "../context/GeoJsonContext";
 import center from "@turf/center";
 import bbox from "@turf/bbox";
-import type { SignsResponse } from "../../../shared/types";
+import type { Sign, SignsResponse, SnapCandidate } from "../../../shared/types";
 import { point } from "@turf/helpers";
 import { buffer } from "@turf/buffer";
 import { booleanPointInPolygon } from "@turf/boolean-point-in-polygon";
 import { length } from "@turf/length";
 import type { Formats } from "../../../shared/types";
 import { Decoder, Stream } from "@garmin/fitsdk";
-import { buildRouteIndex, findSnapCandidates } from "../utils/indexRoute";
+import {
+  buildRouteIndex,
+  classifyCrossing,
+  findSnapCandidates,
+} from "../utils/indexRoute";
+import { withDetectedSelection } from "../utils/signRouteSelection";
 
 interface parseFileProps {
   file: File;
@@ -177,7 +182,19 @@ const useParseFile = () => {
         ) ?? [];
 
       // index RBush tree
-      const { tree } = buildRouteIndex(coordinates);
+      const { tree, cumulativeDistances } = buildRouteIndex(coordinates);
+      const withCrossing = (
+        sign: Sign,
+        pass: SnapCandidate,
+      ): SnapCandidate => ({
+        ...pass,
+        crossing: classifyCrossing(
+          coordinates,
+          cumulativeDistances,
+          pass.distanceAlongRoute,
+          sign.direction,
+        ),
+      });
       geoJsonContext?.setSigns(
         filteredSigns.map((sign) => {
           const snapResult = findSnapCandidates(
@@ -186,14 +203,23 @@ const useParseFile = () => {
             sign.lat,
             sign.long,
           );
-          return {
+          return withDetectedSelection({
             ...sign,
-            snapResult,
-            ...(snapResult.status === "ok" && {
-              positionOnRoute: snapResult.position,
-              selectedPositionsOnRoute: [snapResult.position],
-            }),
-          };
+            snapResult:
+              snapResult.status === "ok"
+                ? {
+                    ...snapResult,
+                    position: withCrossing(sign, snapResult.position),
+                  }
+                : snapResult.status === "ambiguous"
+                  ? {
+                      ...snapResult,
+                      candidates: snapResult.candidates.map((pass) =>
+                        withCrossing(sign, pass),
+                      ),
+                    }
+                  : snapResult,
+          });
         }),
       );
     } catch (error) {

@@ -20,6 +20,7 @@ export interface MockSign {
   tags: Record<string, string>;
   lat: number;
   long: number;
+  direction?: { insideBearing: number; confidence: "high" | "low" };
 }
 
 type Position = readonly [lat: number, lon: number];
