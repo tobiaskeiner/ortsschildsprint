@@ -19,10 +19,6 @@
 </p>
 
 <p align="center">
-  <img alt="React 19" src="https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white" />
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white" />
-  <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-f38020?logo=cloudflare&logoColor=white" />
-  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-PostGIS-3ecf8e?logo=supabase&logoColor=white" />
   <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue" />
 </p>
 
@@ -34,12 +30,11 @@ to build a personal collection of every sign you've ridden past.
 
 ## How it works
 
-```txt
- ┌──────────────┐     ┌───────────────────┐     ┌────────────────┐     ┌──────────────┐
- │ 1. Upload    │ ──▶ │ 2. Match          │ ──▶ │ 3. Review      │ ──▶ │ 4. Export    │
- │ GPX/TCX/FIT  │     │ signs near route  │     │ on the map     │     │ GPX/TCX/FIT  │
- │ (in browser) │     │ (bounding box)    │     │ keep / remove  │     │ with signs   │
- └──────────────┘     └───────────────────┘     └────────────────┘     └──────────────┘
+```mermaid
+flowchart LR
+    A["<b>1. Upload</b><br/>GPX / TCX / FIT<br/>parsed in browser"] --> B["<b>2. Match</b><br/>signs near route<br/>via bounding box"]
+    B --> C["<b>3. Review</b><br/>on the map<br/>keep or remove"]
+    C --> D["<b>4. Export</b><br/>GPX / TCX / FIT<br/>with signs"]
 ```
 
 1. **Upload** – the route file is parsed entirely in your browser.
@@ -65,18 +60,6 @@ to build a personal collection of every sign you've ridden past.
 > The Strava integration is opt-in and works differently from the file flow: it
 > requires server-side authentication and stores ride and collection data. Tokens are
 > encrypted before storage. See the [Strava guide](./api/src/strava/README.md).
-
-## Tech stack
-
-| Area | Tools |
-| --- | --- |
-| Monorepo | pnpm workspaces |
-| Frontend | React 19, Vite, Tailwind CSS, TanStack Router, react-intl |
-| Maps | MapLibre GL via `react-map-gl` |
-| Route parsing & export | `@tmcw/togeojson`, `@garmin/fitsdk`, Turf.js |
-| API | Hono on Cloudflare Workers (service binding) |
-| Data | Supabase / PostGIS (`signs_in_box` RPC) |
-| Testing | Playwright end-to-end tests |
 
 ## Repository structure
 
