@@ -21,8 +21,15 @@ const findSigns = async (page: Page) => {
 const signRow = (page: Page, name: string) =>
   page.locator("section ol").getByRole("button", { name });
 
-const sprintPoints = (page: Page) =>
-  page.getByText("Sprint Points", { exact: true }).locator("..");
+const expectEmptyExport = async (page: Page) => {
+  await expect(
+    page.getByRole("heading", { name: "No signs in this file" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Download/ })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Upload a route" }),
+  ).toBeVisible();
+};
 
 test("shows sign details and removes a deleted sign from the export", async ({
   page,
@@ -57,12 +64,7 @@ test("shows sign details and removes a deleted sign from the export", async ({
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Proceed to export" }).click();
   await expect(page).toHaveURL("/route/export");
-  await expect(sprintPoints(page)).toContainText("0");
-
-  await page.getByRole("button", { name: "Download Enriched Route" }).click();
-  await expect(page.getByRole("alert")).toContainText(
-    "No signs available to include in the export.",
-  );
+  await expectEmptyExport(page);
 });
 
 test("offers to go back or continue when no signs are found", async ({
@@ -83,11 +85,7 @@ test("offers to go back or continue when no signs are found", async ({
   await findSigns(page);
   await page.getByRole("button", { name: "Continue to Export anyway" }).click();
   await expect(page).toHaveURL("/route/export");
-
-  await page.getByRole("button", { name: "Download Enriched Route" }).click();
-  await expect(page.getByRole("alert")).toContainText(
-    "No signs available to include in the export.",
-  );
+  await expectEmptyExport(page);
 });
 
 test("ignores signs that are not on the route", async ({ page }) => {
@@ -149,8 +147,9 @@ test.describe("a sign passed twice on an out-and-back route", () => {
     await page.getByRole("button", { name: "Continue anyway" }).click();
     await expect(page).toHaveURL("/route/export");
 
+    await page.getByRole("radio", { name: "gpx" }).check();
     const download = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Download Enriched Route" }).click();
+    await page.getByRole("button", { name: "Download .gpx" }).click();
     const gpx = (await readDownload(await download)).toString("utf8");
     expect(gpx).toContain("<name>Twiceburg</name>");
   });
@@ -171,9 +170,9 @@ test.describe("a sign passed twice on an out-and-back route", () => {
     await page.getByRole("button", { name: "Proceed to export" }).click();
     await expect(page).toHaveURL("/route/export");
 
-    await page.getByText("FIT (Recommended)", { exact: true }).click();
+    await expect(page.getByRole("radio", { name: "fit" })).toBeChecked();
     const download = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Download Enriched Route" }).click();
+    await page.getByRole("button", { name: "Download .fit" }).click();
     const fit = await readDownload(await download);
 
     const { messages } = new Decoder(Stream.fromBuffer(fit)).read();
@@ -193,8 +192,9 @@ test.describe("a sign passed twice on an out-and-back route", () => {
     await expect(page.getByRole("checkbox", { checked: true })).toHaveCount(2);
     await page.getByRole("button", { name: "Proceed to export" }).click();
 
+    await page.getByRole("radio", { name: "gpx" }).check();
     const download = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Download Enriched Route" }).click();
+    await page.getByRole("button", { name: "Download .gpx" }).click();
     const gpx = (await readDownload(await download)).toString("utf8");
 
     expect(gpx.match(/<wpt /g)).toHaveLength(1);

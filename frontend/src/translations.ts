@@ -175,27 +175,40 @@ export const messages: Record<AppLocale, Record<string, string>> = {
       "{count, plural, one {Bei # Schild ist noch keine Durchfahrt gewählt. Wenn du fortfährst, wird dort die erste Durchfahrt verwendet.} other {Bei # Schildern ist noch keine Durchfahrt gewählt. Wenn du fortfährst, wird dort jeweils die erste Durchfahrt verwendet.}}",
     "edit.proceed.warning.cancel": "Zurück zum Prüfen",
     "edit.proceed.warning.confirm": "Trotzdem fortfahren",
-    "info.route.title": "Route: {name}",
-    "info.distance": "Länge",
-    "info.points": "Sprint Segmente",
-    "info.noSign": "Keine",
-    "info.status.label": "Status",
-    "info.status": "Bereit",
-    "export.title": "Export-Konfiguration",
-    "export.description": "Wähle dein bevorzugtes Format für die Navigation.",
-    "export.convert.hint":
-      "Der Dateityp wird konvertiert, dabei können einige Metadaten verloren gehen",
-    "export.gpx.label": "GPX (Universell)",
-    "export.gpx.subtitle.original":
-      "Die originale .gpx-Datei wird um Wegpunkte ergänzt",
-    "export.gpx.description": "Standard-Routenformat für alle Geräte",
-    "export.tcx.subtitle.original":
-      "Die originale .tcx-Datei wird um Wegpunkte ergänzt",
-    "export.tcx.description": "Abbiegehinweise für die Navigation",
-    "export.fit.label": "FIT (Empfohlen)",
-    "export.fit.description":
-      "Optimiert für moderne Garmin-Geräte. Empfohlen, da das Format Wegpunkte für definierte Distanzen speichern kann. So wird verhindert, dass Ortsschilder mehrmals angezeigt werden, wenn man in der Gegenrichtung an ihnen vorbeifährt.",
-    "export.download": "Route herunterladen",
+    "export.intro":
+      "{count, plural, =0 {Keine Ortsschilder, die als Wegpunkte in die Datei kommen.} one {Deine Route mit # Ortsschild als Wegpunkt, bereit für deinen Radcomputer.} other {Deine Route mit # Ortsschildern als Wegpunkten, bereit für deinen Radcomputer.}}",
+    "export.back": "Zurück zum Prüfen",
+    "export.file.waypoints": "Wegpunkte",
+    "export.file.signs": "Schilder",
+    "export.file.distance": "Länge",
+    "export.file.list": "Ortsschilder in dieser Datei",
+    "export.pass.dropped": "(nicht in diesem Format)",
+    "export.format.title": "Dateiformat",
+    "export.format.fit.title": "Gemacht für Garmin-Geräte",
+    "export.format.fit.description":
+      "Jedes Schild wird mit seiner Distanz entlang der Route gespeichert und erscheint deshalb nicht erneut, wenn du in der Gegenrichtung vorbeifährst. Alle gewählten Durchfahrten bleiben erhalten.",
+    "export.format.gpx.title": "Funktioniert auf jedem Gerät",
+    "export.format.gpx.description":
+      "Das Standardformat für Routen. Die Schilder werden als Wegpunkte ergänzt, bei zweimal passierten Schildern nur die erste Durchfahrt.",
+    "export.format.tcx.title": "Strecke mit Abbiegehinweisen",
+    "export.format.tcx.description":
+      "Ein Kursformat für die Navigation. Die Schilder werden als Kurspunkte ergänzt, bei zweimal passierten Schildern nur die erste Durchfahrt.",
+    "export.source.original":
+      "Deine originale .{ext}-Datei, ergänzt um die Schilder.",
+    "export.source.converted":
+      "Aus deiner .{ext}-Datei erzeugt. Dabei können einige Metadaten verloren gehen.",
+    "export.download": ".{ext} herunterladen",
+    "export.empty.title": "Keine Schilder in dieser Datei",
+    "export.empty.description":
+      "Alle Schilder wurden entfernt oder entlang dieser Route wurden keine gefunden.",
+    "export.empty.hint":
+      "Ohne Ortsschilder gibt es nichts zu ergänzen. Entfernte Schilder kommen zurück, wenn du die Route erneut hochlädst.",
+    "export.format.recommended": "Empfohlen",
+    "export.facts.twice": "Zweimal passierte Schilder",
+    "export.facts.passes": "Durchfahrten in der Datei",
+    "export.facts.passes.all": "Alle gewählten",
+    "export.facts.passes.first": "Nur die erste",
+    "export.empty.action": "Route hochladen",
     "error.title": "Fehler:",
     "error.parse.generic":
       "Beim Verarbeiten der Datei ist ein Fehler aufgetreten.",
@@ -381,27 +394,40 @@ export const messages: Record<AppLocale, Record<string, string>> = {
       "{count, plural, one {# sign still needs a pass chosen. If you continue, its first pass is used.} other {# signs still need a pass chosen. If you continue, their first pass is used.}}",
     "edit.proceed.warning.cancel": "Back to review",
     "edit.proceed.warning.confirm": "Continue anyway",
-    "info.route.title": "Route: {name}",
-    "info.distance": "Distance",
-    "info.points": "Sprint Points",
-    "info.noSign": "No",
-    "info.status.label": "Status",
-    "info.status": "Ready",
-    "export.title": "Export Configuration",
-    "export.description":
-      "Select your preferred format for turn-by-turn navigation.",
-    "export.convert.hint": "File type is converted, some metadata may get lost",
-    "export.gpx.label": "GPX (Universal)",
-    "export.gpx.subtitle.original":
-      "Original .gpx file is enriched with waypoints",
-    "export.gpx.description": "Standard route format for all devices",
-    "export.tcx.subtitle.original":
-      "Original .tcx file is enriched with waypoints",
-    "export.tcx.description": "Turn by turn navigation",
-    "export.fit.label": "FIT (Recommended)",
-    "export.fit.description":
-      "Optimized for modern Garmin devices. Recommended because the format stores waypoints at defined distances, so a sign is not displayed multiple times when you pass it in the opposite direction.",
-    "export.download": "Download Enriched Route",
+    "export.intro":
+      "{count, plural, =0 {No city-limit signs to add to the file as waypoints.} one {Your route with # city-limit sign as a waypoint, ready for your bike computer.} other {Your route with # city-limit signs as waypoints, ready for your bike computer.}}",
+    "export.back": "Back to review",
+    "export.file.waypoints": "Waypoints",
+    "export.file.signs": "Signs",
+    "export.file.distance": "Distance",
+    "export.file.list": "City-limit signs in this file",
+    "export.pass.dropped": "(not in this format)",
+    "export.format.title": "File format",
+    "export.format.fit.title": "Made for Garmin devices",
+    "export.format.fit.description":
+      "Each sign is stored at its distance along the route, so it doesn't show up again when you pass it in the opposite direction. Every pass you chose is kept.",
+    "export.format.gpx.title": "Works on every device",
+    "export.format.gpx.description":
+      "The standard route format. Signs are added as waypoints; for a sign you pass twice, only the first pass is kept.",
+    "export.format.tcx.title": "Course with turn-by-turn navigation",
+    "export.format.tcx.description":
+      "A course format for navigation. Signs are added as course points; for a sign you pass twice, only the first pass is kept.",
+    "export.source.original":
+      "Your original .{ext} file, with the signs added.",
+    "export.source.converted":
+      "Built from your .{ext} file. Some of its metadata may be lost.",
+    "export.download": "Download .{ext}",
+    "export.empty.title": "No signs in this file",
+    "export.empty.description":
+      "Every sign was removed, or none were found along this route.",
+    "export.empty.hint":
+      "Without city-limit signs there is nothing to add. Removed signs come back when you upload the route again.",
+    "export.format.recommended": "Recommended",
+    "export.facts.twice": "Signs passed twice",
+    "export.facts.passes": "Passes in this file",
+    "export.facts.passes.all": "Every chosen pass",
+    "export.facts.passes.first": "First pass only",
+    "export.empty.action": "Upload a route",
     "error.title": "Error:",
     "error.parse.generic": "Something went wrong while parsing the file.",
     "error.parse.invalidFit": "Not a valid FIT file.",
