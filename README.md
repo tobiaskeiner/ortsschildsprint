@@ -46,7 +46,8 @@ to build a personal collection of every sign you've ridden past.
 2. **Match** – only the route's bounding box is sent to the API, which returns nearby
    signs from OpenStreetMap-derived data. Signs are snapped to the route; ambiguous
    matches are flagged.
-3. **Review** – check each sign on an interactive map, then keep or remove it.
+3. **Review** – check each sign on an interactive map, then keep or remove it. In
+   Germany, town exits are detected and left out automatically, but stay listed so you can add them back.
 4. **Export** – download the route with the signs embedded as waypoints / course points.
 
 ## Features
@@ -56,6 +57,7 @@ to build a personal collection of every sign you've ridden past.
 | 🔒 **Privacy-first** | Route files never leave your browser. No account or tracking required. |
 | 🗺️ **Map review** | Inspect, select, and remove signs on a MapLibre map. |
 | ⚠️ **Ambiguity flags** | Uncertain sign-to-route matches are flagged so you can decide. |
+| ↔️ **Entry/exit detection** | In Germany, signs you pass when leaving a town are skipped for you; unclear ones are marked for review. |
 | 📦 **Three formats** | Import and export GPX, TCX, and FIT. |
 | 🔁 **Multiple passes** | FIT exports keep every selected pass of a sign the route crosses more than once. |
 | 🏅 **Strava collection** | Optional: import outdoor rides and collect the signs you've passed, with map and stats. |

@@ -157,6 +157,14 @@ export const messages: Record<AppLocale, Record<string, string>> = {
       "Geh jedes Schild durch. Die Daten unterscheiden nicht zwischen Ortseingang und Ortsausgang, also lösch die Schilder, auf die du nicht sprintest.",
     "edit.list.title":
       "{count, plural, one {# Schild} other {# Schilder}} entlang der Route",
+    "edit.intro.detected":
+      "Ortsausgänge haben wir aus dem Export genommen, sie bleiben hier zum Wiederaufnehmen. Prüf die Schilder, deren Richtung unklar ist.",
+    "edit.crossing.entry": "Ortseingang",
+    "edit.crossing.exit": "Ortsausgang",
+    "edit.crossing.unknown": "Richtung unklar, bitte prüfen",
+    "edit.crossing.skipped": "Ortsausgang · nicht im Export",
+    "edit.sign.restore": "Aufnehmen",
+    "edit.sign.restore.label": "{name} wieder in den Export aufnehmen",
     "edit.sign.delete": "Löschen",
     "edit.pass.needed": "Durchfahrt wählen",
     "edit.pass.question":
@@ -376,6 +384,14 @@ export const messages: Record<AppLocale, Record<string, string>> = {
       "Go through every sign. The data can't tell town entries from exits, so delete the signs you won't sprint for.",
     "edit.list.title":
       "{count, plural, one {# sign} other {# signs}} along the route",
+    "edit.intro.detected":
+      "We've left town exits out of the export; they stay here so you can add them back. Check the signs whose direction is unclear.",
+    "edit.crossing.entry": "Town entry",
+    "edit.crossing.exit": "Town exit",
+    "edit.crossing.unknown": "Direction unclear, please check",
+    "edit.crossing.skipped": "Town exit · not exported",
+    "edit.sign.restore": "Add back",
+    "edit.sign.restore.label": "Add {name} back to the export",
     "edit.sign.delete": "Delete",
     "edit.pass.needed": "Choose a pass",
     "edit.pass.question":

@@ -8,10 +8,12 @@ import { GeoJsonContext } from "../context/GeoJsonContext";
 import { getZoomLevel } from "../utils/getZoomLevel";
 import { buildRouteProfile } from "../utils/routeProfile";
 import {
+  allPasses,
   firstPassAlongRoute,
   getSelectedSnapCandidates,
   isSameSnapCandidate,
   toggleSnapCandidateSelection,
+  withSelectedSnapCandidates,
 } from "../utils/signRouteSelection";
 
 interface EditProps {
@@ -49,8 +51,32 @@ const drawArrow = () => {
 };
 
 const needsPass = (sign: Sign) =>
+  !sign.skipped &&
   sign.snapResult?.status === "ambiguous" &&
   getSelectedSnapCandidates(sign).length === 0;
+
+const crossingMessages = {
+  entry: "edit.crossing.entry",
+  exit: "edit.crossing.exit",
+  unknown: "edit.crossing.unknown",
+} as const;
+
+/** The one-line state under a sign's name, or none when nothing is known. */
+const crossingMessageId = (sign: Sign, detectionActive: boolean) => {
+  if (sign.skipped) return "edit.crossing.skipped";
+  const passes = allPasses(sign);
+  if (passes.length > 1) {
+    // passes carry their own labels; the row only flags an unclear one
+    const unclear = passes.some(
+      (pass) => (pass.crossing ?? "unknown") === "unknown",
+    );
+    return unclear && detectionActive ? crossingMessages.unknown : undefined;
+  }
+  if (passes.length === 0) return undefined;
+  const crossing = passes[0].crossing ?? "unknown";
+  if (crossing === "unknown" && !detectionActive) return undefined;
+  return crossingMessages[crossing];
+};
 
 const prefersReducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -84,6 +110,12 @@ const Edit: React.FC<EditProps> = ({
   if (!geoContext || !geoJson) return null;
 
   const unresolvedCount = signs.filter(needsPass).length;
+  // without any direction data (e.g. outside Germany) the screen reads as before
+  const detectionActive = signs.some((sign) =>
+    allPasses(sign).some(
+      (pass) => pass.crossing === "entry" || pass.crossing === "exit",
+    ),
+  );
 
   const km = (meters: number) =>
     intl.formatNumber(meters / 1000, {
@@ -126,6 +158,19 @@ const Edit: React.FC<EditProps> = ({
     );
   };
 
+  const restoreSign = (sign: Sign) => {
+    geoContext.setSigns(
+      geoContext.signs?.map((candidate) => {
+        if (candidate.id !== sign.id) return candidate;
+        const restored = { ...candidate, skipped: false };
+        // one pass is taken as is; several passes go back to the rider's choice
+        return restored.snapResult?.status === "ok"
+          ? withSelectedSnapCandidates(restored, [restored.snapResult.position])
+          : restored;
+      }),
+    );
+  };
+
   const deleteSign = (sign: Sign) => {
     const index = signs.findIndex(({ id }) => id === sign.id);
     const next = signs[index + 1] ?? signs[index - 1];
@@ -150,7 +195,9 @@ const Edit: React.FC<EditProps> = ({
           Route: {geoContext.routeName ?? geoContext.rawFileName}
         </h1>
         <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary sm:text-base">
-          <FormattedMessage id="edit.intro" />
+          <FormattedMessage
+            id={detectionActive ? "edit.intro.detected" : "edit.intro"}
+          />
         </p>
       </header>
 
@@ -228,9 +275,11 @@ const Edit: React.FC<EditProps> = ({
                       className={`flex items-center justify-center rounded-full font-headline font-bold tabular-nums shadow-[0_2px_6px_rgb(0_0_0/0.35)] transition-transform duration-150 ease-out hover:scale-110 hover:cursor-pointer ${
                         isSelected
                           ? "h-10 w-10 border-[3px] border-[#1b1b1a] bg-town-sign text-sm text-[#1b1b1a]"
-                          : needsPass(sign)
-                            ? "h-8 w-8 border-2 border-dashed border-[#1b1b1a] bg-white text-xs text-[#1b1b1a]"
-                            : "h-8 w-8 border-2 border-white bg-[#1b1b1a] text-xs text-white"
+                          : sign.skipped
+                            ? "h-7 w-7 border-2 border-[#8a8a86] bg-white text-[0.6875rem] text-[#5e5e5b] shadow-none"
+                            : needsPass(sign)
+                              ? "h-8 w-8 border-2 border-dashed border-[#1b1b1a] bg-white text-xs text-[#1b1b1a]"
+                              : "h-8 w-8 border-2 border-white bg-[#1b1b1a] text-xs text-white"
                       }`}
                       onClick={(event) => {
                         event.stopPropagation();
@@ -269,6 +318,9 @@ const Edit: React.FC<EditProps> = ({
                 result?.status === "ambiguous" ? result.candidates : [];
               const name = sign.tags.name ?? `#${sign.osm_id}`;
               const panelId = `sign-panel-${sign.id}`;
+              const stateId = needsPass(sign)
+                ? "edit.pass.needed"
+                : crossingMessageId(sign, detectionActive);
 
               return (
                 <li
@@ -280,50 +332,75 @@ const Edit: React.FC<EditProps> = ({
                     rowRefs.current[sign.id] = element;
                   }}
                 >
-                  <button
-                    aria-controls={panelId}
-                    aria-expanded={isSelected}
-                    className="grid w-full grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 px-5 py-3.5 text-left transition-colors duration-150 hover:cursor-pointer hover:bg-surface-container-low sm:px-6"
-                    onClick={() => select(sign)}
-                    type="button"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`flex h-8 w-8 items-center justify-center rounded-full font-headline text-xs font-bold tabular-nums ${
-                        isSelected
-                          ? "border-2 border-[#1b1b1a] bg-town-sign text-[#1b1b1a]"
-                          : needsPass(sign)
-                            ? "border-2 border-dashed border-on-surface text-on-surface"
-                            : "bg-on-surface text-surface"
-                      }`}
+                  <div className="flex items-center transition-colors duration-150 hover:bg-surface-container-low">
+                    <button
+                      aria-controls={panelId}
+                      aria-expanded={isSelected}
+                      className="grid min-w-0 flex-1 grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 py-3.5 pl-5 text-left hover:cursor-pointer sm:pl-6"
+                      onClick={() => select(sign)}
+                      type="button"
                     >
-                      {index + 1}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate font-headline text-base font-bold uppercase">
-                        {name}
+                      <span
+                        aria-hidden="true"
+                        className={`flex h-8 w-8 items-center justify-center rounded-full font-headline text-xs font-bold tabular-nums ${
+                          isSelected
+                            ? "border-2 border-[#1b1b1a] bg-town-sign text-[#1b1b1a]"
+                            : sign.skipped
+                              ? "border-2 border-outline-variant text-secondary"
+                              : needsPass(sign)
+                                ? "border-2 border-dashed border-on-surface text-on-surface"
+                                : "bg-on-surface text-surface"
+                        }`}
+                      >
+                        {index + 1}
                       </span>
-                      {needsPass(sign) && !isSelected && (
-                        <span className="block text-xs text-secondary">
-                          <FormattedMessage id="edit.pass.needed" />
+                      <span className="min-w-0">
+                        <span
+                          className={`block truncate font-headline text-base font-bold uppercase ${
+                            sign.skipped ? "text-secondary" : ""
+                          }`}
+                        >
+                          {name}
+                        </span>
+                        {stateId && !(isSelected && passes.length > 1) && (
+                          <span className="block text-xs text-secondary">
+                            <FormattedMessage id={stateId} />
+                          </span>
+                        )}
+                      </span>
+                      {!sign.skipped && (
+                        <span className="pr-5 font-headline text-sm font-bold whitespace-nowrap text-secondary tabular-nums sm:pr-6">
+                          {passes.length > 1
+                            ? passes
+                                .map((pass) => km(pass.distanceAlongRoute))
+                                .join(" · ")
+                            : km(firstPassAlongRoute(sign))}
                         </span>
                       )}
-                    </span>
-                    <span className="font-headline text-sm font-bold whitespace-nowrap text-secondary tabular-nums">
-                      {passes.length > 1
-                        ? passes
-                            .map((pass) => km(pass.distanceAlongRoute))
-                            .join(" · ")
-                        : km(firstPassAlongRoute(sign))}
-                    </span>
-                  </button>
+                    </button>
+                    {sign.skipped && (
+                      <button
+                        aria-label={intl.formatMessage(
+                          { id: "edit.sign.restore.label" },
+                          { name },
+                        )}
+                        className="mr-4 shrink-0 rounded-full px-3.5 py-2 font-headline text-xs font-bold tracking-[0.06em] whitespace-nowrap text-on-surface uppercase ring-1 ring-outline-variant transition-colors duration-150 hover:cursor-pointer hover:bg-surface-container-high sm:mr-5"
+                        onClick={() => restoreSign(sign)}
+                        type="button"
+                      >
+                        <FormattedMessage id="edit.sign.restore" />
+                      </button>
+                    )}
+                  </div>
 
                   {isSelected && (
                     <div
                       className="flex flex-col gap-4 px-5 pb-4 sm:px-6 sm:pl-[4.25rem]"
                       id={panelId}
                     >
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <div
+                        className={`grid grid-cols-1 gap-2 ${sign.skipped ? "" : "sm:grid-cols-2"}`}
+                      >
                         <a
                           className="flex items-center justify-center gap-2 rounded-full bg-surface-container-high px-4 py-3 whitespace-nowrap font-headline text-xs font-bold tracking-[0.06em] text-on-surface uppercase transition-colors duration-150 hover:bg-surface-container-highest"
                           href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${sign.lat},${sign.long}`}
@@ -338,21 +415,23 @@ const Edit: React.FC<EditProps> = ({
                           </span>
                           Street View
                         </a>
-                        <button
-                          className="flex items-center justify-center gap-2 rounded-full px-4 py-3 whitespace-nowrap font-headline text-xs font-bold tracking-[0.06em] text-on-surface uppercase ring-1 ring-outline-variant transition-colors duration-150 hover:cursor-pointer hover:bg-surface-container-high"
-                          onClick={() => deleteSign(sign)}
-                          type="button"
-                        >
-                          <span
-                            aria-hidden="true"
-                            className="material-symbols-outlined text-lg"
+                        {!sign.skipped && (
+                          <button
+                            className="flex items-center justify-center gap-2 rounded-full px-4 py-3 whitespace-nowrap font-headline text-xs font-bold tracking-[0.06em] text-on-surface uppercase ring-1 ring-outline-variant transition-colors duration-150 hover:cursor-pointer hover:bg-surface-container-high"
+                            onClick={() => deleteSign(sign)}
+                            type="button"
                           >
-                            delete
-                          </span>
-                          <FormattedMessage id="edit.sign.delete" />
-                        </button>
+                            <span
+                              aria-hidden="true"
+                              className="material-symbols-outlined text-lg"
+                            >
+                              delete
+                            </span>
+                            <FormattedMessage id="edit.sign.delete" />
+                          </button>
+                        )}
                       </div>
-                      {passes.length > 1 && (
+                      {passes.length > 1 && !sign.skipped && (
                         <fieldset>
                           <legend className="mb-2 text-sm leading-snug text-on-surface">
                             <FormattedMessage id="edit.pass.question" />
@@ -391,6 +470,19 @@ const Edit: React.FC<EditProps> = ({
                                     <span className="block font-headline text-sm font-bold tabular-nums">
                                       {km(candidate.distanceAlongRoute)}
                                     </span>
+                                    {detectionActive && (
+                                      <span
+                                        className={`block text-xs ${chosen ? "text-surface/75" : "text-secondary"}`}
+                                      >
+                                        <FormattedMessage
+                                          id={
+                                            crossingMessages[
+                                              candidate.crossing ?? "unknown"
+                                            ]
+                                          }
+                                        />
+                                      </span>
+                                    )}
                                   </span>
                                 </label>
                               );

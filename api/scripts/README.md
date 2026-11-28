@@ -68,3 +68,44 @@ to that export instead of downloading it again:
 OSM_SOURCE_FILE=/absolute/path/to/export.json \
 pnpm --dir api refresh:city-limit-signs
 ```
+
+## Computing town entry and exit directions
+
+`compute-sign-directions.mjs` works out which side of each German city-limit
+sign is inside the town, and stores that as a compass bearing in
+`city_limit_sign_directions`. The browser compares it with the route heading
+at each pass to tell town entries from exits. Signs without a stored
+direction are simply left for the rider to review, so this is optional and
+runs independently of the sign refresh above.
+
+Five signals vote on the inside side: the sign's own `direction` tags (taking
+`city_limit=end` into account), urban/rural road tags (`zone:traffic`,
+`source:maxspeed`), a speed-limit change at the sign, the direction to the
+`place` named on the sign, and building density on either side. A sign is
+`high` confidence when at least two signals agree and none disagree; only
+those are acted on automatically.
+
+Apply the migrations first (`supabase db push`), then build the tile cache from
+a Geofabrik extract. This needs pyosmium, about 7 GB of free disk for a
+temporary node index, and takes roughly half an hour:
+
+```sh
+python -m venv ~/dev/osm-tools/.venv && ~/dev/osm-tools/.venv/bin/pip install osmium
+curl -L -o ~/dev/osm-tools/germany-latest.osm.pbf \
+  https://download.geofabrik.de/europe/germany-latest.osm.pbf
+~/dev/osm-tools/.venv/bin/python api/scripts/sign-directions/extract-from-pbf.py \
+  ~/dev/osm-tools/germany-latest.osm.pbf
+```
+
+Then score the signs and replace the live directions:
+
+```sh
+pnpm --dir api compute:sign-directions             # upload
+pnpm --dir api compute:sign-directions --dry-run   # inspect only
+```
+
+Without a prepared cache the script downloads the same data from Overpass
+instead, which takes about six hours for Germany and is close to the public
+server's daily limits. `--limit N` or `--tiles a,b` restrict a dry run to a
+few tiles. The cache lives in `api/.cache/sign-directions/`; delete it to
+start fresh.
