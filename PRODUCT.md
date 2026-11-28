@@ -36,7 +36,7 @@ The optional Strava workflow is a deployed, server-side integration. It connects
 
 ## Brand Commitments
 
-- Product name: Ortschildsprint.
+- Product name: Ortsschildsprint.
 - German and English are supported product languages.
 - Privacy-first handling is a core promise: no account or tracking is required for the route-file workflow, and the connected Strava experience is optional.
 

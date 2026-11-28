@@ -45,7 +45,7 @@ export const privacyPolicySections: PrivacyPolicySection[] = [
   {
     title: "6. Optionale Strava-Verknüpfung und externe Links",
     paragraphs: [
-      "Bei einer Strava-Verknüpfung leitet Ortschildsprint dich zur Autorisierung zu Strava weiter und ruft die für die Funktion benötigten Fahrten über die Strava-API ab. Die Street-View-Schaltfläche der Karte öffnet Google Maps erst, wenn du sie auswählst. Analyse-Tools, Werbenetzwerke und Social-Media-Plugins werden nicht eingesetzt.",
+      "Bei einer Strava-Verknüpfung leitet Ortsschildsprint dich zur Autorisierung zu Strava weiter und ruft die für die Funktion benötigten Fahrten über die Strava-API ab. Die Street-View-Schaltfläche der Karte öffnet Google Maps erst, wenn du sie auswählst. Analyse-Tools, Werbenetzwerke und Social-Media-Plugins werden nicht eingesetzt.",
     ],
   },
   {

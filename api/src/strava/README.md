@@ -60,7 +60,7 @@ frontend. Configure the redirect URI to match it exactly:
 https://ortsschildsprint.com/api/strava/callback
 ```
 
-During authorization Ortschildsprint always requests `activity:read_all` to
+During authorization Ortsschildsprint always requests `activity:read_all` to
 analyse rides. It requests `activity:write` only when the athlete opts in to
 activity summaries; that permission is used only to update the description of
 a newly completed ride that collected new signs.
@@ -139,7 +139,7 @@ Strava's API confirms them.
 - When Strava reports that an activity was deleted or made private, its
   activity-derived collection data is removed — but only after Strava's API
   confirms the report, since webhook deliveries are unauthenticated. If an
-  activity becomes shareable again, Ortschildsprint analyses it without
+  activity becomes shareable again, Ortsschildsprint analyses it without
   changing its description.
 
 ## Local testing

@@ -1,6 +1,6 @@
-# Ortschildsprint API
+# Ortsschildsprint API
 
-Cloudflare Worker API for Ortschildsprint. It provides city-limit-sign lookup
+Cloudflare Worker API for Ortsschildsprint. It provides city-limit-sign lookup
 for GPX routes and the Strava integration.
 
 Public sign lookups are rate-limited to 60 requests per minute per Cloudflare
